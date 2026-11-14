@@ -25,9 +25,7 @@ class CourseUpdate(BaseModel):
     description: str | None = None
     capacity: int | None = Field(default=None, gt=0)
 
-    _not_null = field_validator("title", "description", "capacity", mode="before")(
-        reject_null
-    )
+    _not_null = field_validator("title", "description", "capacity", mode="before")(reject_null)
 
 
 class CourseRead(BaseModel):

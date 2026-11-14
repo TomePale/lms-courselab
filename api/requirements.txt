@@ -23,3 +23,5 @@ ruff>=0.17.5
 pytest>=8.3
 pytest-asyncio>=0.25
 httpx>=0.28
+# Zamrzavanje vremena za pravila koja ovise o datumima
+freezegun>=1.5

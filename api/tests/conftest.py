@@ -7,6 +7,7 @@ Prije pokretanja: docker compose up -d db
 
 import asyncio
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from pathlib import Path
 
 import bcrypt
@@ -22,7 +23,7 @@ from app.core.config import settings
 from app.core.deps import get_db
 from app.core.jwt import create_access_token
 from app.main import create_app
-from app.models import Base, User
+from app.models import Base, Course, User
 
 TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
@@ -148,3 +149,51 @@ async def trainer(db: AsyncSession) -> User:
 @pytest.fixture
 async def student(db: AsyncSession) -> User:
     return await make_user(db, "student@test.hr", "student")
+
+
+@pytest.fixture
+async def trainer2(db: AsyncSession) -> User:
+    """Drugi trener, za provjere vlasništva."""
+    return await make_user(db, "trener2@test.hr", "trainer")
+
+
+@pytest.fixture
+async def student2(db: AsyncSession) -> User:
+    """Drugi student, za provjere vlasništva."""
+    return await make_user(db, "student2@test.hr", "student")
+
+
+# --- Tečajevi ----------------------------------------------------------------
+
+# Stalni datumi testnog tečaja. Testovi zamrzavaju vrijeme oko njih.
+DEADLINE = datetime(2030, 3, 1, tzinfo=timezone.utc)
+START = datetime(2030, 3, 10, tzinfo=timezone.utc)
+END = datetime(2030, 4, 10, tzinfo=timezone.utc)
+
+# Trenuci unutar svake faze, za freeze_time
+DURING_OPEN = "2030-02-20 12:00:00"
+DURING_CLOSED = "2030-03-05 12:00:00"
+DURING_IN_PROGRESS = "2030-03-15 12:00:00"
+DURING_FINISHED = "2030-04-15 12:00:00"
+
+
+async def make_course(
+    db: AsyncSession,
+    trainer: User,
+    status: str = "published",
+    capacity: int = 10,
+    title: str = "Test tečaj",
+) -> Course:
+    """Tečaj upisan izravno u bazu, mimo API-ja."""
+    course = Course(
+        trainer_id=trainer.id,
+        title=title,
+        capacity=capacity,
+        enrollment_deadline=DEADLINE,
+        start_date=START,
+        end_date=END,
+        status=status,
+    )
+    db.add(course)
+    await db.commit()
+    return course

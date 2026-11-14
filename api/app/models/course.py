@@ -53,9 +53,7 @@ class Course(Base):
     enrollment_deadline: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
-    start_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     # Indeks: gotovo svaki popis filtrira po statusu (student vidi samo published)
     status: Mapped[str] = mapped_column(
