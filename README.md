@@ -33,22 +33,6 @@ Projekt ima dva dijela:
 - **backend** (`api/`): REST API na FastAPI-ju i PostgreSQL-u, 1. dio projekta
 - **frontend** (`web/`): Vue aplikacija, 2. dio projekta
 
-## Stanje projekta
-
-Backend se gradi u 8 faza. Gotovo:
-
-- [x] **Faza 0: postavljanje**: repozitorij, PostgreSQL u Dockeru, postavke
-  iz `.env` (pydantic-settings), FastAPI aplikacija s `GET /health`, ruff
-- [x] **Faza 1: baza i infrastruktura**: asinkrona veza s bazom (SQLAlchemy
-  2.0, asyncpg), Alembic, tablica `users` (migracija 001), jedinstveni format
-  pogrešaka, pytest nad zasebnom testnom bazom
-- [ ] Faza 2: autentikacija (bcrypt, JWT, `/auth/login`, `/auth/refresh`, `/auth/me`)
-- [ ] Faza 3: korisnici i uloge
-- [ ] Faza 4: tečajevi i faze tečaja
-- [ ] Faza 5: upisi i kapacitet
-- [ ] Faza 6: zadaće, predaje i ocjene
-- [ ] Faza 7: završetak tečaja i dorada
-
 ## Tehnologije
 
 | Područje | Alat |
@@ -94,6 +78,8 @@ docker-compose.yml       # baza podataka
 ```bash
 # 1) Konfiguracija
 cp .env.example .env
+python -c "import secrets; print(secrets.token_hex(32))"
+# (ili python3); ispisani ključ upiši u .env umjesto promijeni-me
 
 # 2) Baza
 docker compose up -d db
@@ -106,6 +92,11 @@ uv pip install -r requirements.txt
 alembic upgrade head          # stvara tablice
 uvicorn app.main:app --reload
 ```
+
+`JWT_SECRET_KEY` mora biti vlastiti nasumični ključ od barem 32 znaka. S
+predloškom iz `.env.example` aplikacija se namjerno ne pokreće, jer bi njime
+svatko mogao potpisati valjan token. Naredba iznad radi na svim sustavima,
+a na macOS-u i Linuxu može i `openssl rand -hex 32`.
 
 Provjera:
 
@@ -167,6 +158,22 @@ Svaka pogreška vraća tijelo istog oblika:
 
 `code` je stalan i namijenjen klijentu, `message` čovjeku. Pogreška 422 uz
 to nosi polje `errors` s popisom polja koja nisu prošla provjeru.
+
+## Stanje projekta
+
+Backend se gradi u 8 faza. Gotovo:
+
+- [x] **Faza 0: postavljanje**: repozitorij, PostgreSQL u Dockeru, postavke
+  iz `.env` (pydantic-settings), FastAPI aplikacija s `GET /health`, ruff
+- [x] **Faza 1: baza i infrastruktura**: asinkrona veza s bazom (SQLAlchemy
+  2.0, asyncpg), Alembic, tablica `users` (migracija 001), jedinstveni format
+  pogrešaka, pytest nad zasebnom testnom bazom
+- [ ] Faza 2: autentikacija (bcrypt, JWT, `/auth/login`, `/auth/refresh`, `/auth/me`)
+- [ ] Faza 3: korisnici i uloge
+- [ ] Faza 4: tečajevi i faze tečaja
+- [ ] Faza 5: upisi i kapacitet
+- [ ] Faza 6: zadaće, predaje i ocjene
+- [ ] Faza 7: završetak tečaja i dorada
 
 ## Commitovi
 
