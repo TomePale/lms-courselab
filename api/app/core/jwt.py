@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
 
+from app.core import clock
 from app.core.config import settings
 
 # Ponovno izvozimo iznimke da ostatak aplikacije ne uvozi izravno iz paketa jwt
@@ -18,7 +19,7 @@ ALGORITHM = "HS256"
 
 
 def _create_token(user_id: int, role: str, token_type: str, lifetime: timedelta) -> str:
-    now = datetime.now(timezone.utc)
+    now = clock.now()
     payload = {
         "sub": str(user_id),  # JWT standard traži da sub bude string
         "role": role,
@@ -42,10 +43,7 @@ def create_refresh_token(user_id: int, role: str) -> str:
 
 
 def decode_token(token: str) -> dict:
-    """
-    Dekodira JWT token i vraća njegov sadržaj.
-
-    Provjerava potpis, istek i izdavatelja.
+    """Provjerava potpis, istek i izdavatelja te vraća sadržaj tokena.
 
     Istekao token podiže ExpiredSignatureError, svaki drugi neispravan token
     InvalidTokenError. Prva je podvrsta druge, pa se uvijek hvata prva.
