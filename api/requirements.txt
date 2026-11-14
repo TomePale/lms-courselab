@@ -1,0 +1,2 @@
+# Konfiguracija iz varijabli okoline i .env datoteke
+pydantic-settings>=2.7
