@@ -1,6 +1,7 @@
 # Commit Message Guidelines
 
-Rules for commit messages in CourseLab (LMS backend, FastAPI + PostgreSQL),
+Rules for commit messages in CourseLab (learning platform: FastAPI
+backend in `api/`, Vue frontend in `web/`),
 used by humans and by GitHub Copilot when generating commit messages.
 
 The project is built in small steps (34 steps in 8 phases); every step
