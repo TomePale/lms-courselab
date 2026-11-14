@@ -38,6 +38,9 @@ async def login(db: AsyncSession, email: str, password: str) -> TokenPair:
         raise _invalid_credentials()
     if not verify_password(password, user.password_hash):
         raise _invalid_credentials()
+    # Deaktiviran račun dobiva isti odgovor kao kriva lozinka
+    if not user.is_active:
+        raise _invalid_credentials()
     return _token_pair(user)
 
 
@@ -54,6 +57,6 @@ async def refresh(db: AsyncSession, refresh_token: str) -> TokenPair:
         raise AppError("invalid_credentials", "Neispravan token.", 401)
 
     user = await user_repo.get_by_id(db, int(payload["sub"]))
-    if user is None:
+    if user is None or not user.is_active:
         raise AppError("invalid_credentials", "Neispravan token.", 401)
     return _token_pair(user)

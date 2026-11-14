@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String, func
+from sqlalchemy import Boolean, DateTime, Enum, String, func, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -25,6 +25,11 @@ class User(Base):
 
     role: Mapped[str] = mapped_column(
         Enum(*USER_ROLES, name="user_role"), nullable=False
+    )
+    # Korisnici se ne brišu nego deaktiviraju: njihovi tečajevi, upisi i predaje
+    # ostaju, a deaktiviran račun ne prolazi prijavu ni provjeru tokena
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true()
     )
     # Vrijeme upisa daje baza, pa ne ovisi o satu poslužitelja
     created_at: Mapped[datetime] = mapped_column(

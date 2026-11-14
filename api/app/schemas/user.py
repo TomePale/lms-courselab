@@ -11,6 +11,7 @@ class UserRead(BaseModel):
     first_name: str
     last_name: str
     role: str
+    is_active: bool
     created_at: datetime
 
     # Izračunato polje: ne sprema se u bazu (bilo bi redundantno s imenom

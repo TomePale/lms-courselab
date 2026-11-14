@@ -53,8 +53,9 @@ async def get_current_user(
     # 3) je li to access, a ne refresh token
     if payload["type"] != "access":
         raise AppError("invalid_credentials", "Neispravan token.", 401)
-    # 4) postoji li korisnik još uvijek: token opisuje stanje u trenutku izdavanja
+    # 4) postoji li korisnik i je li aktivan: token opisuje stanje u trenutku
+    #    izdavanja, a račun je u međuvremenu mogao biti deaktiviran
     user = await user_repo.get_by_id(db, int(payload["sub"]))
-    if user is None:
+    if user is None or not user.is_active:
         raise AppError("invalid_credentials", "Neispravan token.", 401)
     return user
