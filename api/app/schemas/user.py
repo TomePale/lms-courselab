@@ -33,9 +33,9 @@ class UserUpdate(BaseModel):
     role: Role | None = None
     is_active: bool | None = None
 
-    _not_null = field_validator(
-        "first_name", "last_name", "role", "is_active", mode="before"
-    )(reject_null)
+    _not_null = field_validator("first_name", "last_name", "role", "is_active", mode="before")(
+        reject_null
+    )
 
 
 class PasswordReset(BaseModel):

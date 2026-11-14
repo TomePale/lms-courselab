@@ -23,9 +23,7 @@ async def test_users_without_token_is_401(client):
 
 async def test_deactivated_user_cannot_use_existing_token(client, admin, trainer):
     headers = auth(trainer)
-    await client.patch(
-        f"/users/{trainer.id}", json={"is_active": False}, headers=auth(admin)
-    )
+    await client.patch(f"/users/{trainer.id}", json={"is_active": False}, headers=auth(admin))
     resp = await client.get("/auth/me", headers=headers)
     assert resp.status_code == 401
     assert resp.json()["code"] == "invalid_credentials"

@@ -31,8 +31,7 @@ async def validation_error_handler(
     errors = []
     for err in exc.errors():
         # loc je npr. ("body", "email") ili ("query", "limit")
-        loc = [str(part)
-               for part in err["loc"] if part not in ("body", "query")]
+        loc = [str(part) for part in err["loc"] if part not in ("body", "query")]
         message = err["msg"].removeprefix("Value error, ")
         errors.append({"field": ".".join(loc), "message": message})
     return JSONResponse(
@@ -71,9 +70,7 @@ async def http_exception_handler(
 UNIQUE_VIOLATION = "23505"
 
 
-async def integrity_error_handler(
-    _request: Request, exc: IntegrityError
-) -> JSONResponse:
+async def integrity_error_handler(_request: Request, exc: IntegrityError) -> JSONResponse:
     # Servis provjerava pravila prije upisa, ali dva istodobna zahtjeva mogu
     # oba proći provjeru. Tada odlučuje baza, a mi umjesto 500 vraćamo 409.
     if getattr(exc.orig, "sqlstate", None) == UNIQUE_VIOLATION:

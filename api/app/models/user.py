@@ -19,13 +19,10 @@ class User(Base):
     # unique=True uz naming convention daje ograničenje uq_users_email.
     # Email se sprema malim slovima (to radi shema), pa je jedinstvenost
     # stvarna.
-    email: Mapped[str] = mapped_column(
-        String(255), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    role: Mapped[str] = mapped_column(
-        Enum(*USER_ROLES, name="user_role"), nullable=False
-    )
+    role: Mapped[str] = mapped_column(Enum(*USER_ROLES, name="user_role"), nullable=False)
     # Korisnici se ne brišu nego deaktiviraju: njihovi tečajevi, upisi i predaje
     # ostaju, a deaktiviran račun ne prolazi prijavu ni provjeru tokena
     is_active: Mapped[bool] = mapped_column(

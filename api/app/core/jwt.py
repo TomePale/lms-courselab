@@ -17,11 +17,7 @@ __all__ = [
 ALGORITHM = "HS256"
 
 
-def _create_token(
-        user_id: int,
-        role: str,
-        token_type: str,
-        lifetime: timedelta) -> str:
+def _create_token(user_id: int, role: str, token_type: str, lifetime: timedelta) -> str:
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),  # JWT standard traži da sub bude string

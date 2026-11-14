@@ -35,9 +35,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.patch("/{user_id}", response_model=UserRead)
-async def update_user(
-    user_id: int, body: UserUpdate, db: AsyncSession = Depends(get_db)
-):
+async def update_user(user_id: int, body: UserUpdate, db: AsyncSession = Depends(get_db)):
     return await user_service.update_user(db, user_id, body)
 
 

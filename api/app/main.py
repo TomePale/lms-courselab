@@ -20,14 +20,15 @@ def create_app(config: Settings = settings) -> FastAPI:
     """Kreira i konfigurira FastAPI aplikaciju."""
     app = FastAPI(title=config.APP_NAME, debug=config.ENV == "dev")
 
-    app.add_exception_handler(AppError, app_error_handler) # pyright: ignore[reportArgumentType]
-    app.add_exception_handler(RequestValidationError, validation_error_handler) # pyright: ignore[reportArgumentType]
-    app.add_exception_handler(StarletteHTTPException, http_exception_handler) # pyright: ignore[reportArgumentType]
-    app.add_exception_handler(IntegrityError, integrity_error_handler) # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(AppError, app_error_handler)  # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(RequestValidationError, validation_error_handler)  # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)  # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(IntegrityError, integrity_error_handler)  # pyright: ignore[reportArgumentType]
 
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(users_router)
     return app
+
 
 app = create_app()

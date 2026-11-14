@@ -36,18 +36,14 @@ async def test_me_without_token_is_401(client):
 
 async def test_refresh_returns_new_pair(client, admin):
     tokens = (await login(client, "admin@test.hr", "lozinka123")).json()
-    resp = await client.post(
-        "/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
-    )
+    resp = await client.post("/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
     assert resp.status_code == 200
     assert resp.json()["access_token"] and resp.json()["refresh_token"]
 
 
 async def test_access_token_rejected_on_refresh(client, admin):
     tokens = (await login(client, "admin@test.hr", "lozinka123")).json()
-    resp = await client.post(
-        "/auth/refresh", json={"refresh_token": tokens["access_token"]}
-    )
+    resp = await client.post("/auth/refresh", json={"refresh_token": tokens["access_token"]})
     assert resp.status_code == 401
     assert resp.json()["code"] == "invalid_credentials"
 
@@ -82,9 +78,7 @@ async def test_token_with_wrong_signature_is_rejected(client, admin):
         "iss": settings.JWT_ISSUER,
         "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
     }
-    token = jwt.encode(
-        payload, "neki-drugi-kljuc-koji-napadac-zna-123", algorithm="HS256"
-    )
+    token = jwt.encode(payload, "neki-drugi-kljuc-koji-napadac-zna-123", algorithm="HS256")
     resp = await client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 401
     assert resp.json()["code"] == "invalid_credentials"
