@@ -9,5 +9,8 @@ uvicorn[standard]>=0.54.0
 sqlalchemy[asyncio]>=2.0
 asyncpg>=0.30
 
+# Migracije sheme baze
+alembic>=1.20
+
 # Statička analiza i formatiranje
 ruff>=0.17.5
