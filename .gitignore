@@ -1,0 +1,34 @@
+# CourseLab: datoteke koje ne ulaze u repozitorij
+
+# --- Tajne i lokalna konfiguracija -------------------------------------------
+# Stvarne vrijednosti (lozinka baze, JWT ključ) postoje samo na računalu.
+# Ignoriramo i varijante poput .env.local, a predložak .env.example
+# izuzimamo uskličnikom, jer on mora biti u repozitoriju.
+.env
+.env.*
+!.env.example
+
+# --- Python (api/) -------------------------------------------------------------
+# Virtualno okruženje koje stvara `uv venv`; svatko ga stvara sam iz requirements.txt
+.venv/
+# Bytecode koji Python sam stvara pri uvozu modula
+__pycache__/
+*.py[cod]
+
+# --- Alati za razvoj -----------------------------------------------------------
+# Predmemorija pytesta i rufa; nastaje pri svakom pokretanju
+.pytest_cache/
+.ruff_cache/
+
+# --- Zapisnici -----------------------------------------------------------------
+*.log
+
+# --- Frontend (web/, 2. dio projekta) ------------------------------------------
+node_modules/
+dist/
+
+# --- Editori i operacijski sustav ----------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
