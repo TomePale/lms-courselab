@@ -4,7 +4,7 @@ import jwt
 
 from app.core.config import settings
 from app.core.jwt import create_refresh_token
-from tests.conftest import auth
+from tests.conftest import auth, make_user
 
 
 async def login(client, email, password):
@@ -94,3 +94,13 @@ async def test_password_hash_never_in_response(client, admin):
     resp = await client.get("/auth/me", headers=auth(admin))
     assert "password_hash" not in resp.text
     assert "$2b$" not in resp.text
+
+
+async def test_deactivated_user_gets_same_401_as_wrong_password(client, db):
+    user = await make_user(db, "neaktivan@test.hr", "student")
+    user.is_active = False
+    await db.commit()
+    deactivated = await login(client, "neaktivan@test.hr", "lozinka123")
+    wrong_password = await login(client, "neaktivan@test.hr", "kriva")
+    assert deactivated.status_code == 401
+    assert deactivated.json() == wrong_password.json()

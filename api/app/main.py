@@ -15,6 +15,7 @@ from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
 from app.routers.users import router as users_router
 
+
 def create_app(config: Settings = settings) -> FastAPI:
     """Kreira i konfigurira FastAPI aplikaciju."""
     app = FastAPI(title=config.APP_NAME, debug=config.ENV == "dev")
