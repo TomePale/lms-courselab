@@ -1,9 +1,13 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Enum, String, func, true
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.course import Course
 
 # Dopuštene uloge. Baza ih provodi kao PostgreSQL ENUM tip user_role,
 # pa ni upis iz konzole ne prolazi s ulogom "admn".
@@ -14,15 +18,15 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    first_name: Mapped[str] = mapped_column(String(60), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(60), nullable=False)
     # unique=True uz naming convention daje ograničenje uq_users_email.
-    # Email se sprema malim slovima (to radi shema), pa je jedinstvenost
-    # stvarna.
+    # Email se sprema malim slovima (to radi shema), pa je jedinstvenost stvarna.
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-
-    role: Mapped[str] = mapped_column(Enum(*USER_ROLES, name="user_role"), nullable=False)
+    first_name: Mapped[str] = mapped_column(String(60), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(60), nullable=False)
+    role: Mapped[str] = mapped_column(
+        Enum(*USER_ROLES, name="user_role"), nullable=False
+    )
     # Korisnici se ne brišu nego deaktiviraju: njihovi tečajevi, upisi i predaje
     # ostaju, a deaktiviran račun ne prolazi prijavu ni provjeru tokena
     is_active: Mapped[bool] = mapped_column(
@@ -32,3 +36,6 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+    # Tečajevi kojima je korisnik trener (druga strana: Course.trainer)
+    courses: Mapped[list["Course"]] = relationship(back_populates="trainer")
