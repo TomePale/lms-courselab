@@ -1,5 +1,6 @@
 import bcrypt
 
+
 def hash_password(plain: str) -> str:
     # gensalt stvara novi nasumični salt i upisuje ga u rezultat,
     # zajedno s oznakom algoritma i faktorom rada

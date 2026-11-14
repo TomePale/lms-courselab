@@ -12,8 +12,9 @@ asyncpg>=0.30
 # Migracije sheme baze
 alembic>=1.20
 
-# Sigurnost: hash lozinki
+# Sigurnost: hash lozinki i JWT tokeni
 bcrypt>=4.2
+pyjwt>=2.10
 
 # Statička analiza i formatiranje
 ruff>=0.17.5
