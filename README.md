@@ -135,6 +135,22 @@ cd api
 pytest
 ```
 
+Korisne varijante (iz mape `api/`, s aktiviranim `.venv`):
+
+| Naredba | Što radi |
+| --- | --- |
+| `pytest -q` | kratak ispis: točkica po testu i zbroj na kraju |
+| `pytest -v` | svaki test u svom retku, s `PASSED` ili `FAILED` |
+| `pytest tests/test_auth.py -v` | samo testovi iz jedne datoteke |
+| `pytest tests/test_auth.py::test_login_success -v` | samo jedan test (ime iza `::`) |
+| `pytest -k expired -v` | samo testovi čije ime sadrži zadanu riječ |
+| `pytest -x` | stane na prvom testu koji padne |
+| `pytest --lf -v` | ponovno pokreće samo testove koji su pali prošli put |
+| `pytest -s` | prikazuje i `print()` iz testova |
+
+Kad test padne, pytest ispiše redak u kojem je pao i vrijednosti koje je
+uspoređivao (npr. `assert 403 == 401`).
+
 Testovi rade nad zasebnom bazom `courselab_test` (varijabla
 `TEST_DATABASE_URL`) na istom poslužitelju; stvara se sama pri prvom
 pokretanju. Shema se stvara migracijama, a tablice se prazne prije svakog
@@ -168,7 +184,9 @@ Backend se gradi u 8 faza. Gotovo:
 - [x] **Faza 1: baza i infrastruktura**: asinkrona veza s bazom (SQLAlchemy
   2.0, asyncpg), Alembic, tablica `users` (migracija 001), jedinstveni format
   pogrešaka, pytest nad zasebnom testnom bazom
-- [ ] Faza 2: autentikacija (bcrypt, JWT, `/auth/login`, `/auth/refresh`, `/auth/me`)
+- [x] **Faza 2: autentikacija**: hash lozinki (bcrypt), access i refresh
+  JWT tokeni, `POST /auth/login`, `POST /auth/refresh`, `GET /auth/me`, seed
+  s administratorom (`python -m app.seed`), testovi prijave i tokena
 - [ ] Faza 3: korisnici i uloge
 - [ ] Faza 4: tečajevi i faze tečaja
 - [ ] Faza 5: upisi i kapacitet

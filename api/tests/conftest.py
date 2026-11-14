@@ -9,6 +9,7 @@ import asyncio
 from collections.abc import AsyncGenerator
 from pathlib import Path
 
+import bcrypt
 import pytest
 from alembic import command
 from alembic.config import Config
@@ -19,8 +20,9 @@ from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.core.deps import get_db
+from app.core.jwt import create_access_token
 from app.main import create_app
-from app.models import Base
+from app.models import Base, User
 
 TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
@@ -99,3 +101,50 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
     """Sesija za pripremu podataka izravno u bazi, mimo API-ja."""
     async with TestSessionLocal() as session:
         yield session
+
+
+# --- Pomoćne funkcije i fixture za korisnike ---------------------------------
+
+
+def fast_hash(password: str) -> str:
+    # Faktor rada 4 umjesto zadanih 12: hash je jednako valjan, a testovi brži
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=4)).decode()
+
+
+async def make_user(
+    db: AsyncSession, email: str, role: str, password: str = "lozinka123"
+) -> User:
+    """Korisnik upisan izravno u bazu, mimo API-ja."""
+    user = User(
+        email=email,
+        password_hash=fast_hash(password),
+        first_name=email.split("@")[0].title(),
+        last_name="Test",
+        role=role,
+    )
+    db.add(user)
+    await db.commit()
+    return user
+
+
+def auth(user: User) -> dict:
+    """Zaglavlje s access tokenom za korisnika.
+
+    Token se stvara pri pozivu, pa unutar freeze_time vrijedi za zamrznuto vrijeme.
+    """
+    return {"Authorization": f"Bearer {create_access_token(user.id, user.role)}"}
+
+
+@pytest.fixture
+async def admin(db: AsyncSession) -> User:
+    return await make_user(db, "admin@test.hr", "admin")
+
+
+@pytest.fixture
+async def trainer(db: AsyncSession) -> User:
+    return await make_user(db, "trener@test.hr", "trainer")
+
+
+@pytest.fixture
+async def student(db: AsyncSession) -> User:
+    return await make_user(db, "student@test.hr", "student")
