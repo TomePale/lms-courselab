@@ -14,3 +14,8 @@ alembic>=1.20
 
 # Statička analiza i formatiranje
 ruff>=0.17.5
+
+# Testovi: pytest, async testovi, HTTP klijent nad aplikacijom bez poslužitelja
+pytest>=8.3
+pytest-asyncio>=0.25
+httpx>=0.28

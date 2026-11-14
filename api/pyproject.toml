@@ -18,3 +18,10 @@ select = ["E", "W", "F", "I"]
 known-first-party = ["app"]
 # mapa alembic/ inače zbunjuje ruff pa paket alembic smatra našim
 known-third-party = ["alembic"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+# async def testovi i fixture rade bez posebne oznake
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
