@@ -11,6 +11,7 @@ from app.core.errors import (
     integrity_error_handler,
     validation_error_handler,
 )
+from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
 
 
@@ -24,6 +25,7 @@ def create_app(config: Settings = settings) -> FastAPI:
     app.add_exception_handler(IntegrityError, integrity_error_handler) # pyright: ignore[reportArgumentType]
 
     app.include_router(health_router)
+    app.include_router(auth_router)
     return app
 
 app = create_app()
