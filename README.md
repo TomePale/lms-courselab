@@ -1,4 +1,26 @@
-# CourseLab
+<p align="center">
+  <img src="assets/logo.svg" alt="CourseLab logo" width="112">
+</p>
+
+<h1 align="center">CourseLab</h1>
+
+<p align="center">
+  Platforma za učenje: tečajevi, upisi, zadaće i predaje
+</p>
+
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://docs.pydantic.dev/"><img src="https://img.shields.io/badge/Pydantic-v2-E92063?logo=pydantic&logoColor=white" alt="Pydantic v2"></a>
+  <a href="https://www.sqlalchemy.org/"><img src="https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy&logoColor=white" alt="SQLAlchemy 2.0"></a>
+  <a href="https://alembic.sqlalchemy.org/"><img src="https://img.shields.io/badge/Alembic-migracije-6BA81E" alt="Alembic"></a>
+  <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 16"></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" alt="Docker"></a>
+  <br>
+  <a href="https://docs.pytest.org/"><img src="https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white" alt="pytest"></a>
+  <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/badge/code%20style-ruff-D7FF64?logo=ruff&logoColor=black" alt="Ruff"></a>
+  <a href="https://github.com/TomePale/lms-courselab/commits/main"><img src="https://img.shields.io/github/last-commit/TomePale/lms-courselab" alt="Zadnji commit"></a>
+</p>
 
 Studentski projekt iz kolegija **Programiranje za web** na SIT UNIZD.
 

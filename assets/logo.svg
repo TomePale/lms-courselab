@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="CourseLab">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#9333ea"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <path d="M38 60 V78 C38 87 50 93 64 93 C78 93 90 87 90 78 V60 L64 72 Z" fill="#e0e7ff"/>
+  <path d="M64 30 L108 50 L64 70 L20 50 Z" fill="#ffffff"/>
+  <path d="M100 54 V78" stroke="#fde68a" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="100" cy="83" r="5.5" fill="#fde68a"/>
+</svg>
