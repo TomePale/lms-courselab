@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -18,7 +19,7 @@ from app.models.base import Base
 if TYPE_CHECKING:
     from app.models.user import User
 
-# Status je odluka trenera i sprema se u bazu
+# Status je odluka trenera i sprema se u bazu (za razliku od faze, koja se računa)
 COURSE_STATUSES = ("draft", "published", "archived")
 
 
@@ -28,6 +29,14 @@ class Course(Base):
         # Ime "capacity_positive" uz naming convention postaje
         # ck_courses_capacity_positive
         CheckConstraint("capacity > 0", name="capacity_positive"),
+        # Poredak datuma provodi i baza, kao zadnja zaštita iza provjere u servisu
+        CheckConstraint(
+            "enrollment_deadline <= start_date AND start_date < end_date",
+            name="dates",
+        ),
+        # Isti trener ne može imati dva tečaja istog naziva; različiti treneri mogu.
+        # Ime po naming conventionu: uq_courses_trainer_id_title
+        UniqueConstraint("trainer_id", "title"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
