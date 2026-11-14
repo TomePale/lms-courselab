@@ -1,14 +1,29 @@
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from sqlalchemy.exc import IntegrityError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import Settings, settings
+from app.core.errors import (
+    AppError,
+    app_error_handler,
+    http_exception_handler,
+    integrity_error_handler,
+    validation_error_handler,
+)
 from app.routers.health import router as health_router
 
 
 def create_app(config: Settings = settings) -> FastAPI:
     """Kreira i konfigurira FastAPI aplikaciju."""
     app = FastAPI(title=config.APP_NAME, debug=config.ENV == "dev")
+
+    app.add_exception_handler(AppError, app_error_handler) # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(RequestValidationError, validation_error_handler) # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler) # pyright: ignore[reportArgumentType]
+    app.add_exception_handler(IntegrityError, integrity_error_handler) # pyright: ignore[reportArgumentType]
+
     app.include_router(health_router)
     return app
-
 
 app = create_app()
