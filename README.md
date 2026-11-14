@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="CourseLab logo" width="112">
+  <img src=".github/logo.svg" alt="CourseLab logo" width="112">
 </p>
 
 <h1 align="center">CourseLab</h1>
