@@ -6,6 +6,13 @@ from sqlalchemy.orm import DeclarativeBase
 # Ovo osigurava da imena ograničenja i indeksa budu predvidljiva i konzistentna.
 # Dokumentacija o SQLAlchemy za više informacija:
 # https://docs.sqlalchemy.org/en/20/core/constraints.html#configuring-constraint-naming-conventions
+"""
+"ix" - index
+"uq" - unique constraint
+"ck" - check constraint
+"fk" - foreign key
+"pk" - primary key
+"""
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_N_name)s",
