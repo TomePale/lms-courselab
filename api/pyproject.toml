@@ -1,0 +1,20 @@
+[project]
+name = "courselab-api"
+version = "0.1.0"
+description = "CourseLab: tečajevi, upisi, zadaće i predaje"
+requires-python = ">=3.11"
+
+# Zavisnosti su u requirements.txt; ovdje je samo konfiguracija alata.
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+# E/W: stil, F: pogreške vidljive iz koda, I: redoslijed uvoza
+select = ["E", "W", "F", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+# mapa alembic/ inače zbunjuje ruff pa paket alembic smatra našim
+known-third-party = ["alembic"]

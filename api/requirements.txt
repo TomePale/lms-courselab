@@ -1,2 +1,9 @@
 # Konfiguracija iz varijabli okoline i .env datoteke
 pydantic-settings>=2.7
+
+# Web okvir i poslužitelj
+fastapi>=0.162.7
+uvicorn[standard]>=0.54.0
+
+# Statička analiza i formatiranje
+ruff>=0.17.5
