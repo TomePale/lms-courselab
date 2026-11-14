@@ -1,3 +1,4 @@
+from sqlalchemy import delete as sa_delete
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,3 +40,9 @@ async def create(db: AsyncSession, course: Course) -> Course:
     db.add(course)
     await db.flush()
     return course
+
+
+async def delete(db: AsyncSession, course: Course) -> None:
+    # Izravan DELETE u bazi.
+    # jer njihov strani ključ ima ON DELETE CASCADE.
+    await db.execute(sa_delete(Course).where(Course.id == course.id))

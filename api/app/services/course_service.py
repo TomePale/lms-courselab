@@ -76,3 +76,34 @@ async def update_course(
         setattr(course, field, value)
     await db.flush()
     return course
+
+
+# Dopušteni prijelazi statusa: iz kojeg stanja u koje. archived je završno stanje.
+COURSE_TRANSITIONS = {
+    "publish": ("draft", "published"),
+    "archive": ("published", "archived"),
+}
+
+
+async def change_status(
+    db: AsyncSession, course_id: int, action: str, user: User
+) -> Course:
+    course = await get_course_or_404(db, course_id)
+    ensure_can_manage(course, user)
+    from_status, to_status = COURSE_TRANSITIONS[action]
+    if course.status != from_status:
+        raise AppError(
+            "invalid_status_transition",
+            f"Prijelaz {course.status} -> {to_status} nije dopušten.",
+            400,
+        )
+    course.status = to_status
+    await db.flush()
+    return course
+
+
+async def delete_course(db: AsyncSession, course_id: int, user: User) -> None:
+    """Brisati se smije tečaj na koji nitko nije upisan."""
+    course = await get_course_or_404(db, course_id)
+    ensure_can_manage(course, user)
+    await course_repo.delete(db, course)

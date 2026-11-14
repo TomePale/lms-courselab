@@ -52,3 +52,32 @@ async def update_course(
     user: User = Depends(require_role("trainer", "admin")),
 ):
     return await course_service.update_course(db, course_id, body, user)
+
+
+# Status se ne mijenja PATCH-om nego zasebnim radnjama: svaka ima svoje pravilo
+@router.post("/{course_id}/publish", response_model=CourseRead)
+async def publish_course(
+    course_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("trainer", "admin")),
+):
+    return await course_service.change_status(db, course_id, "publish", user)
+
+
+@router.post("/{course_id}/archive", response_model=CourseRead)
+async def archive_course(
+    course_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("trainer", "admin")),
+):
+    return await course_service.change_status(db, course_id, "archive", user)
+
+
+# Brisati se smije tečaj na koji nitko nije upisan
+@router.delete("/{course_id}", status_code=204)
+async def delete_course(
+    course_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("trainer", "admin")),
+):
+    await course_service.delete_course(db, course_id, user)
