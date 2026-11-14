@@ -5,5 +5,9 @@ pydantic-settings>=2.7
 fastapi>=0.162.7
 uvicorn[standard]>=0.54.0
 
+# Baza: ORM s podrškom za asyncio i asinkroni driver za PostgreSQL
+sqlalchemy[asyncio]>=2.0
+asyncpg>=0.30
+
 # Statička analiza i formatiranje
 ruff>=0.17.5
