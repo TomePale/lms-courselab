@@ -1,6 +1,9 @@
 services:
   db:
     image: postgres:16
+    # Vremena se i dalje spremaju kao UTC (timestamptz); zona određuje
+    # samo prikaz, pa ih baza ispisuje po hrvatskom vremenu (+01 / ljeti +02)
+    command: ["postgres", "-c", "timezone=Europe/Zagreb"]
     environment:
       POSTGRES_DB: courselab
       POSTGRES_USER: courselab_user
