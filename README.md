@@ -187,7 +187,10 @@ Backend se gradi u 8 faza. Gotovo:
 - [x] **Faza 2: autentikacija**: hash lozinki (bcrypt), access i refresh
   JWT tokeni, `POST /auth/login`, `POST /auth/refresh`, `GET /auth/me`, seed
   s administratorom (`python -m app.seed`), testovi prijave i tokena
-- [ ] Faza 3: korisnici i uloge
+- [x] **Faza 3: korisnici i uloge**: deaktivacija korisnika (`is_active`,
+  migracija 002), provjera uloga (`require_role`), straničenje popisa
+  (`limit`, `offset`, `total`), rute `/users/` za administratora (popis,
+  stvaranje, čitanje, izmjena, reset lozinke), testovi ovlasti
 - [ ] Faza 4: tečajevi i faze tečaja
 - [ ] Faza 5: upisi i kapacitet
 - [ ] Faza 6: zadaće, predaje i ocjene
