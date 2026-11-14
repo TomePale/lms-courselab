@@ -12,6 +12,9 @@ asyncpg>=0.30
 # Migracije sheme baze
 alembic>=1.20
 
+# Sigurnost: hash lozinki
+bcrypt>=4.2
+
 # Statička analiza i formatiranje
 ruff>=0.17.5
 
