@@ -23,6 +23,7 @@
 </p>
 
 Studentski projekt iz kolegija **Programiranje za web** na SIT UNIZD.
+Autor: **Tomislav Perica**.
 
 Platforma za tečajeve: treneri objavljuju tečajeve, studenti se upisuju, a
 trener upis prihvaća ili odbija, uz ograničen broj mjesta. Administrator
@@ -453,3 +454,7 @@ Backend se gradi u 8 faza. Gotovo:
 
 Poruke prate oblik `vrsta(dio): namjera`; pravila su u
 [`.github/commit-guidelines.md`](.github/commit-guidelines.md).
+
+## Autor
+
+Tomislav Perica, student na SIT UNIZD (kolegij Programiranje za web).

@@ -2,6 +2,7 @@
 name = "courselab-api"
 version = "0.1.0"
 description = "CourseLab: tečajevi i upisi"
+authors = [{ name = "Tomislav Perica" }]
 requires-python = ">=3.11"
 
 # Zavisnosti su u requirements.txt; ovdje je samo konfiguracija alata.
