@@ -142,6 +142,29 @@ Seed je idempotentan: svaki zapis traži se po svom jedinstvenom ključu
 (email, naziv kategorije, trener i naziv tečaja, student i tečaj) i stvara
 samo ako ne postoji, pa drugo pokretanje ne stvara duplikate.
 
+## Spajanje na bazu
+
+PostgreSQL radi u Docker kontejneru (`docker compose up -d db`). Za pregled
+podataka u alatu poput DBeavera, pgAdmina ili TablePlusa:
+
+| Postavka | Vrijednost |
+| --- | --- |
+| Host | `localhost` |
+| Port | `5432` |
+| Baza | `courselab` (testovi koriste zasebnu `courselab_test`) |
+| Korisnik | `courselab_user` |
+| Lozinka | `courselab_pass` |
+
+Iz terminala, bez dodatnih alata:
+
+```bash
+docker compose exec db psql -U courselab_user -d courselab
+```
+
+Ove vrijednosti zadane su u `docker-compose.yml` i `.env.example` i služe
+samo za lokalni razvoj. Vremena se spremaju kao UTC (`timestamptz`), a baza
+ih prikazuje po zoni `Europe/Zagreb`.
+
 ## Baza i migracije
 
 Pet tablica: `users`, `categories`, `courses`, `enrollments` i `reviews`.
