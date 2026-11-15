@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import AppError
 from app.models.course import Course
 from app.models.user import User
-from app.repositories import course_repo
+from app.repositories import course_repo, enrollment_repo
 from app.schemas.course import CourseCreate, CourseUpdate
 
 # --- Pomoćne funkcije koje koriste i drugi servisi --------------------------
@@ -24,6 +24,12 @@ def can_manage(course: Course, user: User) -> bool:
 def ensure_can_manage(course: Course, user: User) -> None:
     if not can_manage(course, user):
         raise AppError("forbidden", "Nemate ovlasti nad ovim tečajem.", 403)
+
+
+def ensure_published(course: Course) -> None:
+    """Upis traži objavljen tečaj."""
+    if course.status != "published":
+        raise AppError("course_not_published", "Tečaj nije objavljen.", 400)
 
 
 # --- Radnje ------------------------------------------------------------------
@@ -85,7 +91,9 @@ COURSE_TRANSITIONS = {
 }
 
 
-async def change_status(db: AsyncSession, course_id: int, action: str, user: User) -> Course:
+async def change_status(
+    db: AsyncSession, course_id: int, action: str, user: User
+) -> Course:
     course = await get_course_or_404(db, course_id)
     ensure_can_manage(course, user)
     from_status, to_status = COURSE_TRANSITIONS[action]
@@ -104,4 +112,12 @@ async def delete_course(db: AsyncSession, course_id: int, user: User) -> None:
     """Brisati se smije tečaj na koji nitko nije upisan."""
     course = await get_course_or_404(db, course_id)
     ensure_can_manage(course, user)
+    # Upisi su povijest (tko se prijavio, tko je prihvaćen). Takav tečaj
+    # se arhivira; baza bi brisanje ionako odbila (RESTRICT).
+    if await enrollment_repo.exists_for_course(db, course.id):
+        raise AppError(
+            "course_has_enrollments",
+            "Tečaj ima upise, pa se ne može obrisati; arhivirajte ga.",
+            409,
+        )
     await course_repo.delete(db, course)

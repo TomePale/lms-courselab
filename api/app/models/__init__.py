@@ -5,4 +5,4 @@ from app.models.course import Course
 from app.models.enrollment import Enrollment
 from app.models.user import User  # Primjer modela, zamijeniti stvarnim modelima
 
-__all__ = ["Base", "User", "Course"]
+__all__ = ["Base", "User", "Course", "Enrollment"]

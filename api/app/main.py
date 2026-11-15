@@ -13,6 +13,7 @@ from app.core.errors import (
 )
 from app.routers.auth import router as auth_router
 from app.routers.courses import router as courses_router
+from app.routers.enrollments import router as enrollments_router
 from app.routers.health import router as health_router
 from app.routers.users import router as users_router
 
@@ -30,6 +31,7 @@ def create_app(config: Settings = settings) -> FastAPI:
     app.include_router(auth_router)
     app.include_router(users_router)
     app.include_router(courses_router)
+    app.include_router(enrollments_router)
     return app
 
 
