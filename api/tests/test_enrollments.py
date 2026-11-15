@@ -22,9 +22,7 @@ JUST_AFTER_DEADLINE = "2030-03-01 00:00:01"
 async def test_enroll_one_second_before_deadline(client, db, trainer, student):
     course = await make_course(db, trainer)
     with freeze_time(JUST_BEFORE_DEADLINE):
-        resp = await client.post(
-            f"/courses/{course.id}/enrollments/", headers=auth(student)
-        )
+        resp = await client.post(f"/courses/{course.id}/enrollments/", headers=auth(student))
     assert resp.status_code == 201
     assert resp.json()["status"] == "pending"
     assert resp.json()["student_id"] == student.id
@@ -33,9 +31,7 @@ async def test_enroll_one_second_before_deadline(client, db, trainer, student):
 async def test_enroll_one_second_after_deadline(client, db, trainer, student):
     course = await make_course(db, trainer)
     with freeze_time(JUST_AFTER_DEADLINE):
-        resp = await client.post(
-            f"/courses/{course.id}/enrollments/", headers=auth(student)
-        )
+        resp = await client.post(f"/courses/{course.id}/enrollments/", headers=auth(student))
     assert resp.status_code == 400
     assert resp.json()["code"] == "enrollment_closed"
 
@@ -53,9 +49,7 @@ async def test_double_enrollment_is_409(client, db, trainer, student):
 async def test_enroll_on_draft_course_is_400(client, db, trainer, student):
     course = await make_course(db, trainer, status="draft")
     with freeze_time(DURING_OPEN):
-        resp = await client.post(
-            f"/courses/{course.id}/enrollments/", headers=auth(student)
-        )
+        resp = await client.post(f"/courses/{course.id}/enrollments/", headers=auth(student))
     assert resp.status_code == 400
     assert resp.json()["code"] == "course_not_published"
 
@@ -63,9 +57,7 @@ async def test_enroll_on_draft_course_is_400(client, db, trainer, student):
 async def test_trainer_cannot_enroll(client, db, trainer, trainer2):
     course = await make_course(db, trainer)
     with freeze_time(DURING_OPEN):
-        resp = await client.post(
-            f"/courses/{course.id}/enrollments/", headers=auth(trainer2)
-        )
+        resp = await client.post(f"/courses/{course.id}/enrollments/", headers=auth(trainer2))
     assert resp.status_code == 403
 
 
@@ -76,9 +68,7 @@ async def test_trainer_cannot_list_enrollments_of_foreign_course(
     client, db, trainer, trainer2
 ):
     course = await make_course(db, trainer)
-    resp = await client.get(
-        f"/courses/{course.id}/enrollments/", headers=auth(trainer2)
-    )
+    resp = await client.get(f"/courses/{course.id}/enrollments/", headers=auth(trainer2))
     assert resp.status_code == 403
 
 
@@ -138,23 +128,17 @@ async def test_concurrent_acceptances_respect_capacity(client, db, trainer):
     assert sorted(r.status_code for r in results) == [200, 409]
 
 
-async def test_trainer_cannot_accept_on_foreign_course(
-    client, db, trainer, trainer2, student
-):
+async def test_trainer_cannot_accept_on_foreign_course(client, db, trainer, trainer2, student):
     course = await make_course(db, trainer)
     enrollment = await make_enrollment(db, student, course)
-    resp = await client.post(
-        f"/enrollments/{enrollment.id}/accept", headers=auth(trainer2)
-    )
+    resp = await client.post(f"/enrollments/{enrollment.id}/accept", headers=auth(trainer2))
     assert resp.status_code == 403
 
 
 async def test_admin_can_accept_on_any_course(client, db, admin, trainer, student):
     course = await make_course(db, trainer)
     enrollment = await make_enrollment(db, student, course)
-    resp = await client.post(
-        f"/enrollments/{enrollment.id}/accept", headers=auth(admin)
-    )
+    resp = await client.post(f"/enrollments/{enrollment.id}/accept", headers=auth(admin))
     assert resp.status_code == 200
     assert resp.json()["status"] == "accepted"
 

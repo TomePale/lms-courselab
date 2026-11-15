@@ -91,9 +91,7 @@ COURSE_TRANSITIONS = {
 }
 
 
-async def change_status(
-    db: AsyncSession, course_id: int, action: str, user: User
-) -> Course:
+async def change_status(db: AsyncSession, course_id: int, action: str, user: User) -> Course:
     course = await get_course_or_404(db, course_id)
     ensure_can_manage(course, user)
     from_status, to_status = COURSE_TRANSITIONS[action]

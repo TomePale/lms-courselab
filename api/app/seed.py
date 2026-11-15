@@ -73,7 +73,7 @@ async def get_or_create(session: AsyncSession, model, defaults=None, **lookup):
 
 
 async def seed(session: AsyncSession) -> None:
-    """Sav posao seeda; prima sesiju, pa ga testovi mogu pokrenuti nad testnom bazom."""
+    """Sav posao seeda; main() ga pokreće u jednoj transakciji."""
     now = clock.now()
     day = timedelta(days=1)
 
@@ -88,7 +88,8 @@ async def seed(session: AsyncSession) -> None:
     student3 = users["student3@courselab.hr"]
     student4 = users["student4@courselab.hr"]
 
-    # 1) Upisi otvoreni: student2 čeka odluku trenera
+    # 1) Upisi otvoreni, kapacitet 3: student4 je prihvaćen, a student2 i
+    # student3 čekaju odluku trenera. Kad trener prihvati oba, tečaj je pun.
     python = await get_or_create(
         session,
         Course,
@@ -103,11 +104,18 @@ async def seed(session: AsyncSession) -> None:
             "status": "published",
         },
     )
+    await get_or_create(session, Enrollment, student_id=student2.id, course_id=python.id)
+    await get_or_create(session, Enrollment, student_id=student3.id, course_id=python.id)
     await get_or_create(
-        session, Enrollment, student_id=student2.id, course_id=python.id
+        session,
+        Enrollment,
+        student_id=student4.id,
+        course_id=python.id,
+        defaults={"status": "accepted", "decided_at": now - day},
     )
 
-    # 2) Tečaj u tijeku: student1 je prihvaćen
+    # 2) Tečaj u tijeku: student1 i student3 su prihvaćeni
+    # (student3 je tako upisan na dva tečaja)
     databases = await get_or_create(
         session,
         Course,
@@ -126,6 +134,13 @@ async def seed(session: AsyncSession) -> None:
         session,
         Enrollment,
         student_id=student1.id,
+        course_id=databases.id,
+        defaults={"status": "accepted", "decided_at": now - 15 * day},
+    )
+    await get_or_create(
+        session,
+        Enrollment,
+        student_id=student3.id,
         course_id=databases.id,
         defaults={"status": "accepted", "decided_at": now - 15 * day},
     )

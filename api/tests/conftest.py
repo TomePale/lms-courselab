@@ -198,6 +198,7 @@ async def make_course(
     await db.commit()
     return course
 
+
 async def make_enrollment(
     db: AsyncSession, student: User, course: Course, status: str = "pending"
 ) -> Enrollment:
