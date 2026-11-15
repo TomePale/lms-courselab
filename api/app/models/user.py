@@ -8,6 +8,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.course import Course
+    from app.models.enrollment import Enrollment
 
 # Dopuštene uloge. Baza ih provodi kao PostgreSQL ENUM tip user_role,
 # pa ni upis iz konzole ne prolazi s ulogom "admn".
@@ -37,3 +38,5 @@ class User(Base):
 
     # Tečajevi kojima je korisnik trener (druga strana: Course.trainer)
     courses: Mapped[list["Course"]] = relationship(back_populates="trainer")
+    # Upisi korisnika kao studenta (druga strana: Enrollment.student)
+    enrollments: Mapped[list["Enrollment"]] = relationship(back_populates="student")

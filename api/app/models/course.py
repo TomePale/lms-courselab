@@ -17,6 +17,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
+    from app.models.enrollment import Enrollment
     from app.models.user import User
 
 # Status je odluka trenera i sprema se u bazu (za razliku od faze, koja se računa)
@@ -68,3 +69,4 @@ class Course(Base):
     )
 
     trainer: Mapped["User"] = relationship(back_populates="courses")
+    enrollments: Mapped[list["Enrollment"]] = relationship(back_populates="course")
