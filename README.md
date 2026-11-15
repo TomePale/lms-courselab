@@ -248,6 +248,32 @@ Admin smije sve što i vlasnik tečaja, nad svim tečajevima. Status tečaja i
 upisa ne mijenja se PATCH-om, nego zasebnim radnjama (`publish`, `archive`,
 `accept`, `reject`), jer svaka ima svoje pravilo.
 
+## Tko što smije
+
+"Vlasnik" je trener koji je stvorio tečaj, a "tuđi trener" svaki drugi
+trener. Uloga se provjerava ovisnošću `require_role`, a vlasništvo u servisu
+(`can_manage`).
+
+| Radnja | Admin | Trener vlasnik | Tuđi trener | Student | Neprijavljen |
+| --- | :-: | :-: | :-: | :-: | :-: |
+| prijava, obnova tokena | ✓ | ✓ | ✓ | ✓ | ✓ |
+| vlastiti podaci (`/auth/me`) | ✓ | ✓ | ✓ | ✓ | ✗ |
+| upravljanje korisnicima (`/users/`) | ✓ | ✗ | ✗ | ✗ | ✗ |
+| stvaranje tečaja | ✓ | ✓ | ✓ | ✗ | ✗ |
+| pregled objavljenih tečajeva | ✓ | ✓ | ✓ | ✓ | ✗ |
+| pregled nacrta (`draft`) | ✓ | ✓ | ✗ (404) | ✗ (404) | ✗ |
+| izmjena tečaja (naziv, opis, kapacitet) | ✓ | ✓ | ✗ | ✗ | ✗ |
+| objava i arhiviranje tečaja | ✓ | ✓ | ✗ | ✗ | ✗ |
+| brisanje tečaja (samo bez upisa) | ✓ | ✓ | ✗ | ✗ | ✗ |
+| upis na tečaj | ✗ | ✗ | ✗ | ✓ | ✗ |
+| pregled svojih upisa (`/me/enrollments/`) | ✗ | ✗ | ✗ | ✓ | ✗ |
+| pregled upisa tečaja | ✓ | ✓ | ✗ | ✗ | ✗ |
+| pregled jednog upisa | ✓ | ✓ | ✗ | samo svoj | ✗ |
+| prihvaćanje i odbijanje upisa | ✓ | ✓ | ✗ | ✗ | ✗ |
+
+Zabranjena radnja vraća 403 `forbidden`, a neprijavljen korisnik 401. Tuđi
+nacrt vraća 404, pa se iz odgovora ne vidi ni da tečaj postoji.
+
 ## Faze tečaja
 
 Faza se ne sprema nego se računa pri svakom zahtjevu iz datuma tečaja i
