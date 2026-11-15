@@ -71,12 +71,34 @@ docker-compose.yml       # baza podataka
 .env.example             # predložak konfiguracije
 ```
 
-Ruta prima zahtjev i vraća odgovor, poslovno pravilo stoji u servisu, a upit
-nad bazom samo u repozitoriju.
+### Slojevi
 
-Uvicorn bilježi svaki zahtjev, a servisi uz to bilježe važne događaje
-(stvoren i obrisan tečaj, prihvaćen i odbijen upis, obrisana kategorija,
-nova recenzija), npr. `INFO app.services.course_service: course deleted: id=5`.
+Svaki zahtjev prolazi kroz iste slojeve, a svaki sloj ima jedan zadatak:
+
+| Sloj | Mapa | Zadatak |
+| --- | --- | --- |
+| ruta | `routers/` | prima HTTP zahtjev, provjerava prijavu i ulogu, vraća odgovor |
+| shema | `schemas/` | provjerava ulazne podatke (Pydantic) i određuje oblik odgovora, npr. bez `password_hash` |
+| servis | `services/` | provodi pravila: vlasništvo, rokove, kapacitet, prijelaze statusa |
+| repozitorij | `repositories/` | jedini radi upite nad bazom |
+| model | `models/` | opisuje tablice u bazi (SQLAlchemy) |
+
+Primjer: `POST /enrollments/{id}/accept` → ruta u `routers/enrollments.py` →
+`enrollment_service.accept` provjerava vlasništvo, status i kapacitet →
+`course_repo` i `enrollment_repo` čitaju i zaključavaju retke u bazi → ruta
+vraća upis kroz shemu `EnrollmentRead`.
+
+### Logiranje
+
+Uvicorn u terminalu ispisuje svaki zahtjev (metodu, putanju i status). Uz to
+aplikacija zapisuje važne radnje: stvoren i obrisan tečaj, prihvaćen i
+odbijen upis, obrisanu kategoriju i novu recenziju. Primjer:
+
+```
+INFO app.services.course_service: course deleted: id=5 by user_id=2
+```
+
+Lozinke i tokeni se nikad ne zapisuju.
 
 ## Preduvjeti
 
