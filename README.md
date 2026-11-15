@@ -5,7 +5,7 @@
 <h1 align="center">CourseLab</h1>
 
 <p align="center">
-  Platforma za učenje: tečajevi, upisi, zadaće i predaje
+  Platforma za tečajeve: objava, upisi i ograničen broj mjesta
 </p>
 
 <p align="center">
@@ -24,9 +24,9 @@
 
 Studentski projekt iz kolegija **Programiranje za web** na SIT UNIZD.
 
-Pojednostavljena platforma za učenje: treneri objavljuju tečajeve i zadaće,
-studenti se upisuju i predaju rješenja, a administrator upravlja korisnicima i
-vidi sve zapise.
+Platforma za tečajeve: treneri objavljuju tečajeve, studenti se upisuju, a
+trener upis prihvaća ili odbija, uz ograničen broj mjesta. Administrator
+upravlja korisnicima i smije sve što i trener, nad svim tečajevima.
 
 Projekt ima dva dijela:
 
@@ -177,7 +177,7 @@ to nosi polje `errors` s popisom polja koja nisu prošla provjeru.
 
 ## Stanje projekta
 
-Backend se gradi u 8 faza. Gotovo:
+Backend se gradi u 7 faza. Gotovo:
 
 - [x] **Faza 0: postavljanje**: repozitorij, PostgreSQL u Dockeru, postavke
   iz `.env` (pydantic-settings), FastAPI aplikacija s `GET /health`, ruff
@@ -191,10 +191,12 @@ Backend se gradi u 8 faza. Gotovo:
   migracija 002), provjera uloga (`require_role`), straničenje popisa
   (`limit`, `offset`, `total`), rute `/users/` za administratora (popis,
   stvaranje, čitanje, izmjena, reset lozinke), testovi ovlasti
-- [ ] Faza 4: tečajevi i faze tečaja
-- [ ] Faza 5: upisi i kapacitet
-- [ ] Faza 6: zadaće, predaje i ocjene
-- [ ] Faza 7: završetak tečaja i dorada
+- [x] **Faza 4: tečajevi**: tablica `courses` (migracije 003 i 004), faza
+  tečaja računa se iz datuma (`compute_phase`), vlasnik je onaj tko stvori
+  tečaj, a admin smije sve; objava, arhiviranje i brisanje tečaja, testovi
+  vlasništva i faza uz zamrznuto vrijeme (freezegun)
+- [ ] Faza 5: upisi (rok upisa, prihvaćanje i odbijanje, kapacitet)
+- [ ] Faza 6: početni podaci i dorada (seed, README, provjera na svježem klonu)
 
 ## Commitovi
 

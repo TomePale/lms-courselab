@@ -162,11 +162,11 @@ test(api): cover enrollment rules
 ### Bug fix
 
 ```
-fix(api): reject grading before assignment due date
+fix(api): reject enrollment exactly at the deadline
 
-- api/app/services/submission_service.py: compare clock.now() with
-  due_at before saving points
-- api/tests/test_submissions.py: cover grading one second before due
+- api/app/services/enrollment_service.py: compare clock.now() with
+  enrollment_deadline using < instead of <=
+- api/tests/test_enrollments.py: cover enrolling one second after deadline
 ```
 
 ### Documentation

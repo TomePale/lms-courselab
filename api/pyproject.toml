@@ -1,7 +1,7 @@
 [project]
 name = "courselab-api"
 version = "0.1.0"
-description = "CourseLab: tečajevi, upisi, zadaće i predaje"
+description = "CourseLab: tečajevi i upisi"
 requires-python = ">=3.11"
 
 # Zavisnosti su u requirements.txt; ovdje je samo konfiguracija alata.
