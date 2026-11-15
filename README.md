@@ -189,7 +189,7 @@ cd api
 pytest
 ```
 
-35 testova pokriva prijavu, tokene i promjenu lozinke, uloge, vlasništvo i poslovna pravila
+36 testova pokriva prijavu, tokene i promjenu lozinke, uloge, vlasništvo i poslovna pravila
 (rok upisa, kapacitet, prijelazi statusa, brisanje tečaja i kategorije,
 recenzije). Pravila koja
 ovise o vremenu testiraju se sa zamrznutim vremenom (freezegun), na

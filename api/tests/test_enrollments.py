@@ -99,6 +99,16 @@ async def test_trainer_cannot_accept_on_foreign_course(client, db, trainer, trai
     assert resp.status_code == 403
 
 
+async def test_demoted_trainer_loses_access_to_own_course(client, db, trainer, student):
+    course = await make_course(db, trainer)
+    enrollment = await make_enrollment(db, student, course)
+    # Admin je treneru promijenio ulogu u studenta
+    trainer.role = "student"
+    await db.commit()
+    resp = await client.get(f"/enrollments/{enrollment.id}", headers=auth(trainer))
+    assert resp.status_code == 403
+
+
 async def test_admin_can_accept_on_any_course(client, db, admin, trainer, student):
     course = await make_course(db, trainer)
     enrollment = await make_enrollment(db, student, course)

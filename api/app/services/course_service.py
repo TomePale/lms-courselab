@@ -21,8 +21,12 @@ async def get_course_or_404(db: AsyncSession, course_id: int) -> Course:
 
 
 def can_manage(course: Course, user: User) -> bool:
-    """Admin smije sve, a ostali samo tečajeve koje su sami stvorili."""
-    return user.role == "admin" or course.trainer_id == user.id
+    """Admin smije sve, a trener samo tečajeve koje je sam stvorio.
+
+    Uloga se provjerava i za vlasnika: trener kojeg admin promijeni u
+    studenta gubi pristup svojim tečajevima i podacima njihovih studenata.
+    """
+    return user.role == "admin" or (user.role == "trainer" and course.trainer_id == user.id)
 
 
 def ensure_can_manage(course: Course, user: User) -> None:
