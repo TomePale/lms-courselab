@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
@@ -5,6 +7,8 @@ from app.models.course import Course
 from app.models.user import User
 from app.repositories import category_repo, course_repo, enrollment_repo
 from app.schemas.course import CourseCreate, CourseUpdate
+
+logger = logging.getLogger(__name__)
 
 # --- Pomoćne funkcije koje koriste i drugi servisi --------------------------
 
@@ -77,7 +81,9 @@ async def create_course(db: AsyncSession, body: CourseCreate, user: User) -> Cou
     # Vlasnik je onaj tko stvara tečaj: trener ili admin
     course = Course(trainer_id=user.id, **body.model_dump())
     # Isti naziv kod istog vlasnika odbija baza (UNIQUE) -> 409 duplicate
-    return await course_repo.create(db, course)
+    course = await course_repo.create(db, course)
+    logger.info("course created: id=%s trainer_id=%s", course.id, course.trainer_id)
+    return course
 
 
 async def update_course(
@@ -130,3 +136,4 @@ async def delete_course(db: AsyncSession, course_id: int, user: User) -> None:
             409,
         )
     await course_repo.delete(db, course)
+    logger.info("course deleted: id=%s by user_id=%s", course_id, user.id)

@@ -1,9 +1,13 @@
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError
 from app.models.category import Category
 from app.repositories import category_repo
 from app.schemas.category import CategoryCreate, CategoryUpdate
+
+logger = logging.getLogger(__name__)
 
 
 async def get_category_or_404(db: AsyncSession, category_id: int) -> Category:
@@ -44,3 +48,4 @@ async def delete_category(db: AsyncSession, category_id: int) -> None:
             409,
         )
     await category_repo.delete(db, category)
+    logger.info("category deleted: id=%s", category_id)

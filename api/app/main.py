@@ -11,6 +11,7 @@ from app.core.errors import (
     integrity_error_handler,
     validation_error_handler,
 )
+from app.core.logging import setup_logging
 from app.routers.auth import router as auth_router
 from app.routers.categories import router as categories_router
 from app.routers.courses import router as courses_router
@@ -22,6 +23,8 @@ from app.routers.users import router as users_router
 
 def create_app(config: Settings = settings) -> FastAPI:
     """Kreira i konfigurira FastAPI aplikaciju."""
+
+    setup_logging(debug=config.ENV == "dev")
     app = FastAPI(title=config.APP_NAME, debug=config.ENV == "dev")
 
     app.add_exception_handler(AppError, app_error_handler)  # pyright: ignore[reportArgumentType]

@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
@@ -12,6 +14,8 @@ from app.services.course_service import (
     ensure_published,
     get_course_or_404,
 )
+
+logger = logging.getLogger(__name__)
 
 
 async def _get_enrollment_or_404(db: AsyncSession, enrollment_id: int) -> Enrollment:
@@ -92,6 +96,7 @@ async def accept(db: AsyncSession, enrollment_id: int, user: User) -> Enrollment
     enrollment.status = "accepted"
     enrollment.decided_at = clock.now()
     await db.flush()
+    logger.info("enrollment accepted: id=%s course_id=%s", enrollment.id, course.id)
     return enrollment
 
 
@@ -100,4 +105,5 @@ async def reject(db: AsyncSession, enrollment_id: int, user: User) -> Enrollment
     enrollment.status = "rejected"
     enrollment.decided_at = clock.now()
     await db.flush()
+    logger.info("enrollment rejected: id=%s", enrollment.id)
     return enrollment

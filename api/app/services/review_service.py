@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import clock
@@ -8,6 +10,8 @@ from app.models.user import User
 from app.repositories import enrollment_repo, review_repo
 from app.schemas.review import ReviewCreate
 from app.services.course_service import get_visible_course
+
+logger = logging.getLogger(__name__)
 
 
 async def list_reviews(
@@ -34,4 +38,6 @@ async def create_review(
     review = Review(
         course_id=course.id, student=user, rating=body.rating, comment=body.comment
     )
-    return await review_repo.create(db, review)
+    review = await review_repo.create(db, review)
+    logger.info("review created: id=%s course_id=%s", review.id, course.id)
+    return review
