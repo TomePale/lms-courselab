@@ -7,7 +7,7 @@ Smije se pokrenuti bilo koliko puta: svaki zapis traži se po svom jedinstvenom
 ključu i stvara samo ako ne postoji.
 
 Datumi tečajeva računaju se od trenutka prvog pokretanja, pa je jedan tečaj
-tada u fazi upisa, a drugi u tijeku.
+tada u fazi upisa, drugi u tijeku, a treći završen (s recenzijom).
 """
 
 import asyncio
@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import clock
 from app.core.database import AsyncSessionLocal, engine
 from app.core.security import hash_password
-from app.models import Course, Enrollment, User
+from app.models import Category, Course, Enrollment, Review, User
 
 # (email, lozinka, ime, prezime, uloga)
 USERS = [
@@ -88,6 +88,10 @@ async def seed(session: AsyncSession) -> None:
     student3 = users["student3@courselab.hr"]
     student4 = users["student4@courselab.hr"]
 
+    # Kategorije tečajeva (jedinstvene po nazivu)
+    programming = await get_or_create(session, Category, name="Programiranje")
+    db_category = await get_or_create(session, Category, name="Baze podataka")
+
     # 1) Upisi otvoreni, kapacitet 3: student4 je prihvaćen, a student2 i
     # student3 čekaju odluku trenera. Kad trener prihvati oba, tečaj je pun.
     python = await get_or_create(
@@ -102,6 +106,7 @@ async def seed(session: AsyncSession) -> None:
             "start_date": now + 21 * day,
             "end_date": now + 60 * day,
             "status": "published",
+            "category_id": programming.id,
         },
     )
     await get_or_create(session, Enrollment, student_id=student2.id, course_id=python.id)
@@ -128,6 +133,7 @@ async def seed(session: AsyncSession) -> None:
             "start_date": now - 10 * day,
             "end_date": now + 30 * day,
             "status": "published",
+            "category_id": db_category.id,
         },
     )
     await get_or_create(
@@ -143,6 +149,37 @@ async def seed(session: AsyncSession) -> None:
         student_id=student3.id,
         course_id=databases.id,
         defaults={"status": "accepted", "decided_at": now - 15 * day},
+    )
+
+    # 3) Završen tečaj: student1 je bio prihvaćen i napisao recenziju
+    git = await get_or_create(
+        session,
+        Course,
+        trainer_id=trainer.id,
+        title="Git osnove",
+        defaults={
+            "description": "Commitovi, grane i rad s udaljenim repozitorijem.",
+            "capacity": 10,
+            "enrollment_deadline": now - 60 * day,
+            "start_date": now - 50 * day,
+            "end_date": now - 5 * day,
+            "status": "published",
+            "category_id": programming.id,
+        },
+    )
+    await get_or_create(
+        session,
+        Enrollment,
+        student_id=student1.id,
+        course_id=git.id,
+        defaults={"status": "accepted", "decided_at": now - 55 * day},
+    )
+    await get_or_create(
+        session,
+        Review,
+        course_id=git.id,
+        student_id=student1.id,
+        defaults={"rating": 5, "comment": "Kratko i korisno."},
     )
 
 

@@ -54,13 +54,14 @@ api/                     # backend: FastAPI
     main.py              # sastavljanje aplikacije, rute i handleri pogrešaka
     seed.py              # početni podaci (python -m app.seed)
     core/                # postavke, baza, sigurnost, JWT, ovisnosti, pogreške,
-                         # sat (clock) i izračun faze tečaja (phases)
-    models/              # SQLAlchemy modeli: users, courses, enrollments
+                         # sat (clock), izračun faze tečaja (phases), logging
+    models/              # SQLAlchemy modeli: users, courses, enrollments,
+                         # categories, reviews
     schemas/             # Pydantic sheme ulaza i izlaza
     repositories/        # upiti nad bazom
     services/            # poslovna pravila i provjere vlasništva
     routers/             # rute: primaju zahtjev, zovu servis, vraćaju odgovor
-  alembic/versions/      # migracije baze 001 ... 005
+  alembic/versions/      # migracije baze 001 ... 007
   tests/                 # pytest
   requirements.txt       # zavisnosti
   pyproject.toml         # postavke za ruff i pytest
@@ -71,6 +72,10 @@ docker-compose.yml       # baza podataka
 
 Ruta prima zahtjev i vraća odgovor, poslovno pravilo stoji u servisu, a upit
 nad bazom samo u repozitoriju.
+
+Uvicorn bilježi svaki zahtjev, a servisi uz to bilježe važne događaje
+(stvoren i obrisan tečaj, prihvaćen i odbijen upis, obrisana kategorija,
+nova recenzija), npr. `INFO app.services.course_service: course deleted: id=5`.
 
 ## Preduvjeti
 
@@ -123,22 +128,26 @@ Provjera:
 | student | `student3@courselab.hr` | `student123` |
 | student | `student4@courselab.hr` | `student123` |
 
-I dva tečaja trenera `trener@courselab.hr`, s datumima računatima od
-trenutka prvog pokretanja:
+Uz to stvara kategorije *Programiranje* i *Baze podataka* i tri tečaja
+trenera `trener@courselab.hr`, s datumima računatima od trenutka prvog
+pokretanja:
 
-| Tečaj | Faza | Kapacitet | Upisi |
-| --- | --- | --- | --- |
-| *Uvod u Python* | upisi otvoreni | 3 | `student4` prihvaćen; `student2` i `student3` čekaju odluku |
-| *Baze podataka* | u tijeku | 10 | `student1` i `student3` prihvaćeni |
+| Tečaj | Kategorija | Faza | Kapacitet | Upisi |
+| --- | --- | --- | --- | --- |
+| *Uvod u Python* | Programiranje | upisi otvoreni | 3 | `student4` prihvaćen; `student2` i `student3` čekaju odluku |
+| *Baze podataka* | Baze podataka | u tijeku | 10 | `student1` i `student3` prihvaćeni |
+| *Git osnove* | Programiranje | završen | 10 | `student1` prihvaćen i napisao recenziju (ocjena 5) |
 
 Seed je idempotentan: svaki zapis traži se po svom jedinstvenom ključu
-(email, trener i naziv tečaja, student i tečaj) i stvara samo ako ne postoji,
-pa drugo pokretanje ne stvara duplikate.
+(email, naziv kategorije, trener i naziv tečaja, student i tečaj) i stvara
+samo ako ne postoji, pa drugo pokretanje ne stvara duplikate.
 
 ## Baza i migracije
 
-Tri tablice: `users`, `courses` i `enrollments`. Trener ima više tečajeva
-(1:N), a student i tečaj povezani su upisima (N:M preko `enrollments`).
+Pet tablica: `users`, `categories`, `courses`, `enrollments` i `reviews`.
+Trener ima više tečajeva (1:N), kategorija ima više tečajeva (1:N), a
+student i tečaj povezani su upisima (N:M preko `enrollments`) i
+recenzijama (`reviews`).
 
 | Rev | Promjena |
 | --- | --- |
@@ -147,12 +156,14 @@ Tri tablice: `users`, `courses` i `enrollments`. Trener ima više tečajeva
 | 003 | tablica `courses`, ENUM `course_status`, FK na trenera, CHECK `capacity > 0` |
 | 004 | CHECK poretka datuma tečaja i UNIQUE (`trainer_id`, `title`) |
 | 005 | tablica `enrollments`, ENUM `enrollment_status`, oba FK, UNIQUE (`student_id`, `course_id`), indeks (`course_id`, `status`) |
+| 006 | tablica `categories` (UNIQUE na nazivu) i stupac `courses.category_id` (FK, nullable, indeks) |
+| 007 | tablica `reviews`, oba FK, UNIQUE (`course_id`, `student_id`), CHECK ocjene 1–5 |
 
 Shema baze mijenja se isključivo migracijama u `api/alembic/versions/`.
 Naredbe se pokreću iz mape `api/`:
 
 ```bash
-alembic revision --autogenerate --rev-id 006 -m "opis promjene"   # nova migracija
+alembic revision --autogenerate --rev-id 008 -m "opis promjene"   # nova migracija
 alembic upgrade head      # primijeni sve migracije
 alembic downgrade -1      # poništi zadnju
 alembic current           # na kojoj je migraciji baza
@@ -178,8 +189,9 @@ cd api
 pytest
 ```
 
-26 testova pokriva prijavu i tokene, uloge, vlasništvo i poslovna pravila
-(rok upisa, kapacitet, prijelazi statusa, brisanje tečaja). Pravila koja
+32 testa pokrivaju prijavu i tokene, uloge, vlasništvo i poslovna pravila
+(rok upisa, kapacitet, prijelazi statusa, brisanje tečaja i kategorije,
+recenzije). Pravila koja
 ovise o vremenu testiraju se sa zamrznutim vremenom (freezegun), na
 granicama: sekundu prije i sekundu poslije roka upisa te točno na granici
 svake faze tečaja.
@@ -220,30 +232,68 @@ minuta; refresh token traje 7 dana. Popisi primaju `limit` (zadano 20, najviše
 100) i `offset` (zadano 0) i vraćaju
 `{"items": [...], "total": N, "limit": 20, "offset": 0}`.
 
+### Općenito
+
 | Metoda | Putanja | Opis | Pristup |
 | --- | --- | --- | --- |
 | GET | `/health` | provjera rada | javno |
+
+### Autentikacija (`/auth`)
+
+| Metoda | Putanja | Opis | Pristup |
+| --- | --- | --- | --- |
 | POST | `/auth/login` | prijava, vraća access i refresh token | javno |
 | POST | `/auth/refresh` | novi par tokena | refresh token |
 | GET | `/auth/me` | trenutni korisnik | prijavljen |
+
+### Korisnici (`/users`)
+
+| Metoda | Putanja | Opis | Pristup |
+| --- | --- | --- | --- |
 | GET | `/users/` | popis korisnika, filtar `role` | admin |
 | POST | `/users/` | novi korisnik | admin |
 | GET | `/users/{id}` | jedan korisnik | admin |
 | PATCH | `/users/{id}` | ime, prezime, uloga, `is_active` | admin |
 | POST | `/users/{id}/reset-password` | nova lozinka (204) | admin |
+
+### Kategorije (`/categories`)
+
+| Metoda | Putanja | Opis | Pristup |
+| --- | --- | --- | --- |
+| GET | `/categories/` | popis kategorija | prijavljen |
+| POST | `/categories/` | nova kategorija | admin |
+| PATCH | `/categories/{id}` | promjena naziva | admin |
+| DELETE | `/categories/{id}` | brisanje kategorije bez tečajeva (204) | admin |
+
+### Tečajevi (`/courses`)
+
+| Metoda | Putanja | Opis | Pristup |
+| --- | --- | --- | --- |
 | GET | `/courses/` | popis tečajeva s izračunatom fazom | admin: svi; trener: svoji i objavljeni; student: objavljeni |
-| POST | `/courses/` | novi tečaj (`draft`); vlasnik je onaj tko ga stvori | trener, admin |
+| POST | `/courses/` | novi tečaj (`draft`), opcionalno `category_id`; vlasnik je onaj tko ga stvori | trener, admin |
 | GET | `/courses/{id}` | jedan tečaj | kao popis |
-| PATCH | `/courses/{id}` | naziv, opis, kapacitet | vlasnik, admin |
+| PATCH | `/courses/{id}` | naziv, opis, kapacitet, `category_id` (`null` miče kategoriju) | vlasnik, admin |
 | POST | `/courses/{id}/publish` | `draft` → `published` | vlasnik, admin |
 | POST | `/courses/{id}/archive` | `published` → `archived` | vlasnik, admin |
 | DELETE | `/courses/{id}` | brisanje tečaja bez upisa (204) | vlasnik, admin |
+
+### Upisi (`/enrollments`)
+
+| Metoda | Putanja | Opis | Pristup |
+| --- | --- | --- | --- |
 | POST | `/courses/{id}/enrollments/` | upis na tečaj | student |
 | GET | `/courses/{id}/enrollments/` | upisi tečaja | vlasnik, admin |
 | GET | `/me/enrollments/` | moji upisi | student |
 | GET | `/enrollments/{id}` | jedan upis | student vlasnik upisa, vlasnik tečaja, admin |
 | POST | `/enrollments/{id}/accept` | prihvaćanje upisa (kapacitet) | vlasnik tečaja, admin |
 | POST | `/enrollments/{id}/reject` | odbijanje upisa | vlasnik tečaja, admin |
+
+### Recenzije (`/reviews`)
+
+| Metoda | Putanja | Opis | Pristup |
+| --- | --- | --- | --- |
+| POST | `/courses/{id}/reviews/` | recenzija završenog tečaja | prihvaćeni student |
+| GET | `/courses/{id}/reviews/` | recenzije tečaja | tko vidi tečaj |
 
 Admin smije sve što i vlasnik tečaja, nad svim tečajevima. Status tečaja i
 upisa ne mijenja se PATCH-om, nego zasebnim radnjama (`publish`, `archive`,
@@ -271,6 +321,10 @@ trener. Uloga se provjerava ovisnošću `require_role`, a vlasništvo u servisu
 | pregled upisa tečaja | ✓ | ✓ | ✗ | ✗ | ✗ |
 | pregled jednog upisa | ✓ | ✓ | ✗ | samo svoj | ✗ |
 | prihvaćanje i odbijanje upisa | ✓ | ✓ | ✗ | ✗ | ✗ |
+| pregled kategorija | ✓ | ✓ | ✓ | ✓ | ✗ |
+| upravljanje kategorijama | ✓ | ✗ | ✗ | ✗ | ✗ |
+| pisanje recenzije (prihvaćen, tečaj završen) | ✗ | ✗ | ✗ | ✓ | ✗ |
+| pregled recenzija tečaja | ✓ | ✓ | ako vidi tečaj | ako vidi tečaj | ✗ |
 
 Zabranjena radnja vraća 403 `forbidden`, a neprijavljen korisnik 401. Tuđi
 nacrt vraća 404, pa se iz odgovora ne vidi ni da tečaj postoji.
@@ -288,7 +342,8 @@ trenutnog vremena (`app/core/phases.py`), pa nikad ne zastarijeva.
 | `finished` | `now >= end_date` |
 
 Upis je moguć samo u fazi `enrollment_open` i samo na tečaj u statusu
-`published`. Prihvaćanje i odbijanje upisa ne ovise o fazi.
+`published`. Recenzija je moguća samo u fazi `finished`. Prihvaćanje i
+odbijanje upisa ne ovise o fazi.
 
 ## Poslovna pravila
 
@@ -301,6 +356,10 @@ Upis je moguć samo u fazi `enrollment_open` i samo na tečaj u statusu
 | tečaj: `draft` → `published` → `archived`; upis: `pending` → `accepted` / `rejected` | 400 `invalid_status_transition` |
 | datumi tečaja: `enrollment_deadline <= start_date < end_date` (i CHECK u bazi) | 400 `invalid_dates` |
 | tečaj s upisima ne briše se nego arhivira | 409 `course_has_enrollments` |
+| kategorija koju koriste tečajevi ne briše se | 409 `category_has_courses` |
+| recenziju piše samo student s prihvaćenim upisom | 403 `not_enrolled` |
+| recenzija tek kad je tečaj završen | 400 `course_not_finished` |
+| jedna recenzija po studentu na tečaj | 409 `duplicate` |
 | tuđi tečaj ili upis | 403 `forbidden` ili 404 `not_found` |
 
 ## Pogreške
@@ -317,7 +376,7 @@ to nosi polje `errors` s popisom polja koja nisu prošla provjeru:
 
 | `code` | HTTP | Kada |
 | --- | --- | --- |
-| `validation_error` | 422 | tijelo ili parametri ne odgovaraju shemi |
+| `validation_error` | 422 | tijelo ili parametri ne odgovaraju shemi; nepostojeća kategorija tečaja |
 | `invalid_credentials` | 401 | kriva lozinka, nepostojeći ili deaktiviran korisnik, neispravan token |
 | `token_expired` | 401 | token je istekao |
 | `forbidden` | 403 | uloga ili vlasništvo ne dopuštaju radnju |
@@ -330,10 +389,13 @@ to nosi polje `errors` s popisom polja koja nisu prošla provjeru:
 | `invalid_dates` | 400 | datumi tečaja nisu u ispravnom poretku |
 | `course_not_published` | 400 | tečaj nije objavljen |
 | `enrollment_closed` | 400 | rok za upis je prošao |
+| `category_has_courses` | 409 | kategoriju koriste tečajevi, pa se ne briše |
+| `not_enrolled` | 403 | student nema prihvaćen upis na tečaj |
+| `course_not_finished` | 400 | tečaj još nije završio |
 
 ## Stanje projekta
 
-Backend se gradi u 7 faza. Gotovo:
+Backend se gradi u 8 faza. Gotovo:
 
 - [x] **Faza 0: postavljanje**: repozitorij, PostgreSQL u Dockeru, postavke
   iz `.env` (pydantic-settings), FastAPI aplikacija s `GET /health`, ruff
@@ -356,6 +418,10 @@ Backend se gradi u 7 faza. Gotovo:
   zabrana brisanja tečaja s upisima, testovi pravila upisa
 - [x] **Faza 6: početni podaci i dorada**: seed s trenerom, četiri studenta,
   dva tečaja u različitim fazama i upisima, potpuni README
+- [x] **Faza 7: kategorije, recenzije i logging**: tablica `categories`
+  (migracija 006) i kategorija tečaja, tablica `reviews` (migracija 007):
+  recenziju piše prihvaćeni student nakon završetka tečaja, jednom po tečaju;
+  logging važnih događaja u servisima
 
 ## Commitovi
 
