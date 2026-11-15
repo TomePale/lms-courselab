@@ -60,3 +60,14 @@ async def refresh(db: AsyncSession, refresh_token: str) -> TokenPair:
     if user is None or not user.is_active:
         raise AppError("invalid_credentials", "Neispravan token.", 401)
     return _token_pair(user)
+
+
+async def change_password(
+    db: AsyncSession, user: User, current_password: str, new_password: str
+) -> None:
+    """Korisnik mijenja svoju lozinku. Trenutna lozinka je obavezna, pa
+    ukradeni access token sam po sebi nije dovoljan za preuzimanje računa."""
+    if not verify_password(current_password, user.password_hash):
+        raise AppError("wrong_password", "Trenutna lozinka nije ispravna.", 400)
+    user.password_hash = hash_password(new_password)
+    await db.flush()

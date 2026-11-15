@@ -1,4 +1,6 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
+
+from app.schemas.user import check_password_bytes
 
 
 class LoginRequest(BaseModel):
@@ -20,3 +22,11 @@ class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+
+class ChangePasswordRequest(BaseModel):
+    # Trenutna lozinka se samo provjerava, pa joj ne treba ograničenje duljine
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=72)
+
+    _password_bytes = field_validator("new_password")(check_password_bytes)

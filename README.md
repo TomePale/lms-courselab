@@ -189,7 +189,7 @@ cd api
 pytest
 ```
 
-32 testa pokrivaju prijavu i tokene, uloge, vlasništvo i poslovna pravila
+35 testova pokriva prijavu, tokene i promjenu lozinke, uloge, vlasništvo i poslovna pravila
 (rok upisa, kapacitet, prijelazi statusa, brisanje tečaja i kategorije,
 recenzije). Pravila koja
 ovise o vremenu testiraju se sa zamrznutim vremenom (freezegun), na
@@ -245,6 +245,7 @@ minuta; refresh token traje 7 dana. Popisi primaju `limit` (zadano 20, najviše
 | POST | `/auth/login` | prijava, vraća access i refresh token | javno |
 | POST | `/auth/refresh` | novi par tokena | refresh token |
 | GET | `/auth/me` | trenutni korisnik | prijavljen |
+| POST | `/auth/change-password` | promjena vlastite lozinke uz trenutnu lozinku (204) | prijavljen |
 
 ### Korisnici (`/users`)
 
@@ -309,6 +310,7 @@ trener. Uloga se provjerava ovisnošću `require_role`, a vlasništvo u servisu
 | --- | :-: | :-: | :-: | :-: | :-: |
 | prijava, obnova tokena | ✓ | ✓ | ✓ | ✓ | ✓ |
 | vlastiti podaci (`/auth/me`) | ✓ | ✓ | ✓ | ✓ | ✗ |
+| promjena vlastite lozinke | ✓ | ✓ | ✓ | ✓ | ✗ |
 | upravljanje korisnicima (`/users/`) | ✓ | ✗ | ✗ | ✗ | ✗ |
 | stvaranje tečaja | ✓ | ✓ | ✓ | ✗ | ✗ |
 | pregled objavljenih tečajeva | ✓ | ✓ | ✓ | ✓ | ✗ |
@@ -379,6 +381,7 @@ to nosi polje `errors` s popisom polja koja nisu prošla provjeru:
 | `validation_error` | 422 | tijelo ili parametri ne odgovaraju shemi; nepostojeća kategorija tečaja |
 | `invalid_credentials` | 401 | kriva lozinka, nepostojeći ili deaktiviran korisnik, neispravan token |
 | `token_expired` | 401 | token je istekao |
+| `wrong_password` | 400 | trenutna lozinka kod promjene lozinke nije ispravna |
 | `forbidden` | 403 | uloga ili vlasništvo ne dopuštaju radnju |
 | `not_found` | 404 | zapis ne postoji ili ga korisnik ne smije vidjeti |
 | `duplicate` | 409 | zapis bi prekršio jedinstvenost |

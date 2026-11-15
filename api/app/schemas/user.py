@@ -12,6 +12,16 @@ Role = Literal["admin", "trainer", "student"]
 EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
 
+def check_password_bytes(value: str) -> str:
+    """bcrypt prima najviše 72 bajta. max_length broji znakove, a znak poput
+    "č" zauzima 2 bajta, pa provjeravamo i duljinu u bajtovima."""
+    if len(value.encode()) > 72:
+        raise ValueError(
+            "Lozinka smije imati najviše 72 bajta (č, ć, š, ž, đ zauzimaju po 2)."
+        )
+    return value
+
+
 class UserCreate(BaseModel):
     email: str = Field(max_length=255, pattern=EMAIL_PATTERN, examples=["user@example.com"])
     # bcrypt uzima samo prva 72 bajta lozinke, pa dulje ne dopuštamo
@@ -19,6 +29,8 @@ class UserCreate(BaseModel):
     first_name: str = Field(min_length=1, max_length=60)
     last_name: str = Field(min_length=1, max_length=60)
     role: Role
+
+    _password_bytes = field_validator("password")(check_password_bytes)
 
     @field_validator("email")
     @classmethod
@@ -40,6 +52,8 @@ class UserUpdate(BaseModel):
 
 class PasswordReset(BaseModel):
     password: str = Field(min_length=8, max_length=72)
+
+    _password_bytes = field_validator("password")(check_password_bytes)
 
 
 class UserRead(BaseModel):

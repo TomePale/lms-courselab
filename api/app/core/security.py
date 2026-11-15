@@ -8,5 +8,10 @@ def hash_password(plain: str) -> str:
 
 
 def verify_password(plain: str, hashed: str) -> bool:
+    data = plain.encode()
+    # bcrypt odbija lozinke dulje od 72 bajta (baca ValueError, što bi bila 500).
+    # Takva lozinka ne može biti ispravna, jer je pri stvaranju ne dopuštamo.
+    if len(data) > 72:
+        return False
     # checkpw iz zapisa iščita salt i faktor rada, ponovi izračun i usporedi
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
+    return bcrypt.checkpw(data, hashed.encode())
