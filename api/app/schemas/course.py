@@ -17,6 +17,8 @@ class CourseCreate(BaseModel):
     enrollment_deadline: AwareDatetime
     start_date: AwareDatetime
     end_date: AwareDatetime
+    # Kategorija nije obavezna
+    category_id: int | None = None
 
 
 class CourseUpdate(BaseModel):
@@ -24,6 +26,9 @@ class CourseUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = None
     capacity: int | None = Field(default=None, gt=0)
+    # Nije u reject_null: poslani null znači "makni kategoriju", jer je stupac
+    # nullable. Izostavljeno polje i dalje znači "ne mijenjaj".
+    category_id: int | None = None
 
     _not_null = field_validator("title", "description", "capacity", mode="before")(reject_null)
 
@@ -31,6 +36,7 @@ class CourseUpdate(BaseModel):
 class CourseRead(BaseModel):
     id: int
     trainer_id: int
+    category_id: int | None
     title: str
     description: str
     capacity: int

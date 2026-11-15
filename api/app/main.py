@@ -12,6 +12,7 @@ from app.core.errors import (
     validation_error_handler,
 )
 from app.routers.auth import router as auth_router
+from app.routers.categories import router as categories_router
 from app.routers.courses import router as courses_router
 from app.routers.enrollments import router as enrollments_router
 from app.routers.health import router as health_router
@@ -32,6 +33,7 @@ def create_app(config: Settings = settings) -> FastAPI:
     app.include_router(users_router)
     app.include_router(courses_router)
     app.include_router(enrollments_router)
+    app.include_router(categories_router)
     return app
 
 

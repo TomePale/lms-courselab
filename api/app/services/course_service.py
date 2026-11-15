@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import AppError
 from app.models.course import Course
 from app.models.user import User
-from app.repositories import course_repo, enrollment_repo
+from app.repositories import category_repo, course_repo, enrollment_repo
 from app.schemas.course import CourseCreate, CourseUpdate
 
 # --- Pomoćne funkcije koje koriste i drugi servisi --------------------------
@@ -24,6 +24,13 @@ def can_manage(course: Course, user: User) -> bool:
 def ensure_can_manage(course: Course, user: User) -> None:
     if not can_manage(course, user):
         raise AppError("forbidden", "Nemate ovlasti nad ovim tečajem.", 403)
+
+
+async def ensure_category_exists(db: AsyncSession, category_id: int | None) -> None:
+    # Bez ove provjere baza bi odbila strani ključ (409 integrity_error);
+    # ovako klijent dobiva jasnu poruku
+    if category_id is not None and await category_repo.get_by_id(db, category_id) is None:
+        raise AppError("validation_error", "Kategorija ne postoji.", 422)
 
 
 def ensure_published(course: Course) -> None:
@@ -66,6 +73,7 @@ async def create_course(db: AsyncSession, body: CourseCreate, user: User) -> Cou
             "Mora vrijediti: rok upisa <= početak < kraj tečaja.",
             400,
         )
+    await ensure_category_exists(db, body.category_id)
     # Vlasnik je onaj tko stvara tečaj: trener ili admin
     course = Course(trainer_id=user.id, **body.model_dump())
     # Isti naziv kod istog vlasnika odbija baza (UNIQUE) -> 409 duplicate
@@ -78,7 +86,10 @@ async def update_course(
     course = await get_course_or_404(db, course_id)
     ensure_can_manage(course, user)
     # exclude_unset: samo polja koja je klijent stvarno poslao
-    for field, value in body.model_dump(exclude_unset=True).items():
+    data = body.model_dump(exclude_unset=True)
+    if "category_id" in data:
+        await ensure_category_exists(db, data["category_id"])
+    for field, value in data.items():
         setattr(course, field, value)
     await db.flush()
     return course

@@ -46,6 +46,11 @@ class Course(Base):
     trainer_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
     )
+    # Kategorija nije obavezna (NULL = bez kategorije). RESTRICT: kategorija
+    # koju koristi neki tečaj ne može se obrisati
+    category_id: Mapped[int | None] = mapped_column(
+        ForeignKey("categories.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(
         Text, nullable=False, default="", server_default=""
