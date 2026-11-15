@@ -48,3 +48,10 @@ async def exists_for_course(db: AsyncSession, course_id: int) -> bool:
     """Ima li tečaj ijedan upis, bilo kojeg statusa."""
     stmt = select(Enrollment.id).where(Enrollment.course_id == course_id).limit(1)
     return await db.scalar(stmt) is not None
+
+async def count_accepted(db: AsyncSession, course_id: int) -> int:
+    """Broj zauzetih mjesta na tečaju: prihvaćeni upisi."""
+    stmt = select(func.count(Enrollment.id)).where(
+        Enrollment.course_id == course_id, Enrollment.status == "accepted"
+    )
+    return await db.scalar(stmt)

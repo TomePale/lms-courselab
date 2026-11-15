@@ -42,6 +42,22 @@ async def create(db: AsyncSession, course: Course) -> Course:
 
 
 async def delete(db: AsyncSession, course: Course) -> None:
-    # Izravan DELETE u bazi.
     await db.delete(course)
     await db.flush()
+
+
+async def lock_by_id(db: AsyncSession, course_id: int) -> Course | None:
+    """SELECT ... FOR UPDATE: zaključava redak tečaja do kraja transakcije.
+
+    Drugi zahtjev koji zaključava isti tečaj čeka dok prvi ne završi, pa dva
+    istodobna prihvaćanja ne mogu oba vidjeti "ima još jedno mjesto".
+    populate_existing osvježava objekt koji je možda već učitan u sesiju.
+    """
+    stmt = (
+        select(Course)
+        .where(Course.id == course_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()

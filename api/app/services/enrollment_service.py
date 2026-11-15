@@ -5,7 +5,7 @@ from app.core.errors import AppError
 from app.core.phases import CoursePhase, compute_phase
 from app.models.enrollment import Enrollment
 from app.models.user import User
-from app.repositories import enrollment_repo
+from app.repositories import course_repo, enrollment_repo
 from app.services.course_service import (
     can_manage,
     ensure_can_manage,
@@ -60,3 +60,44 @@ async def enroll(db: AsyncSession, course_id: int, user: User) -> Enrollment:
     # zahtjeva prošla bi je oba.
     enrollment = Enrollment(student=user, course=course)
     return await enrollment_repo.create(db, enrollment)
+
+
+# --- Odluke vlasnika tečaja ili admina ----------------------------------------
+
+
+async def _get_pending(
+    db: AsyncSession, enrollment_id: int, user: User, target: str
+) -> Enrollment:
+    """Zajednički dio prihvaćanja i odbijanja: postojanje, ovlast i status."""
+    enrollment = await _get_enrollment_or_404(db, enrollment_id)
+    ensure_can_manage(enrollment.course, user)
+    # Odlučuje se samo o upisu koji čeka; accepted i rejected su konačni
+    if enrollment.status != "pending":
+        raise AppError(
+            "invalid_status_transition",
+            f"Prijelaz {enrollment.status} -> {target} nije dopušten.",
+            400,
+        )
+    return enrollment
+
+
+async def accept(db: AsyncSession, enrollment_id: int, user: User) -> Enrollment:
+    enrollment = await _get_pending(db, enrollment_id, user, "accepted")
+    # Prvo zaključavamo tečaj, tek onda brojimo. Bez zaključavanja dva
+    # istodobna zahtjeva oba izbroje 9/10 i oba prihvate: 11/10.
+    course = await course_repo.lock_by_id(db, enrollment.course_id)
+    taken = await enrollment_repo.count_accepted(db, course.id)
+    if taken >= course.capacity:
+        raise AppError("course_full", "Tečaj je popunjen.", 409)
+    enrollment.status = "accepted"
+    enrollment.decided_at = clock.now()
+    await db.flush()
+    return enrollment
+
+
+async def reject(db: AsyncSession, enrollment_id: int, user: User) -> Enrollment:
+    enrollment = await _get_pending(db, enrollment_id, user, "rejected")
+    enrollment.status = "rejected"
+    enrollment.decided_at = clock.now()
+    await db.flush()
+    return enrollment

@@ -60,3 +60,21 @@ async def get_enrollment(
     user: User = Depends(get_current_user),
 ):
     return await enrollment_service.get_enrollment(db, enrollment_id, user)
+
+
+@router.post("/enrollments/{enrollment_id}/accept", response_model=EnrollmentRead)
+async def accept(
+    enrollment_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("trainer", "admin")),
+):
+    return await enrollment_service.accept(db, enrollment_id, user)
+
+
+@router.post("/enrollments/{enrollment_id}/reject", response_model=EnrollmentRead)
+async def reject(
+    enrollment_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_role("trainer", "admin")),
+):
+    return await enrollment_service.reject(db, enrollment_id, user)
