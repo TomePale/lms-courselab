@@ -13,9 +13,9 @@ EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
 
 class UserCreate(BaseModel):
-    email: str = Field(max_length=255, pattern=EMAIL_PATTERN)
+    email: str = Field(max_length=255, pattern=EMAIL_PATTERN, examples=["user@example.com"])
     # bcrypt uzima samo prva 72 bajta lozinke, pa dulje ne dopuštamo
-    password: str = Field(min_length=8, max_length=72)
+    password: str = Field(min_length=8, max_length=72, examples=["user123"])
     first_name: str = Field(min_length=1, max_length=60)
     last_name: str = Field(min_length=1, max_length=60)
     role: Role

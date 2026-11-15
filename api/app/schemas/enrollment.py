@@ -10,6 +10,9 @@ class CourseBrief(BaseModel):
 
     id: int
     title: str
+    description: str
+    start_date: datetime
+    end_date: datetime
 
     model_config = {"from_attributes": True}
 
