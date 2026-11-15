@@ -23,7 +23,7 @@ from app.core.config import settings
 from app.core.deps import get_db
 from app.core.jwt import create_access_token
 from app.main import create_app
-from app.models import Base, Course, User
+from app.models import Base, Course, Enrollment, User
 
 TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 
@@ -197,3 +197,12 @@ async def make_course(
     db.add(course)
     await db.commit()
     return course
+
+async def make_enrollment(
+    db: AsyncSession, student: User, course: Course, status: str = "pending"
+) -> Enrollment:
+    """Upis upisan izravno u bazu, u zadanom statusu."""
+    enrollment = Enrollment(student_id=student.id, course_id=course.id, status=status)
+    db.add(enrollment)
+    await db.commit()
+    return enrollment
