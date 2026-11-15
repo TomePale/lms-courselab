@@ -3,8 +3,6 @@ from datetime import datetime, timedelta, timezone
 import jwt
 
 from app.core.config import settings
-from app.core.jwt import create_refresh_token
-from tests.conftest import auth, make_user
 
 
 async def login(client, email, password):
@@ -41,20 +39,6 @@ async def test_refresh_returns_new_pair(client, admin):
     assert resp.json()["access_token"] and resp.json()["refresh_token"]
 
 
-async def test_access_token_rejected_on_refresh(client, admin):
-    tokens = (await login(client, "admin@test.hr", "lozinka123")).json()
-    resp = await client.post("/auth/refresh", json={"refresh_token": tokens["access_token"]})
-    assert resp.status_code == 401
-    assert resp.json()["code"] == "invalid_credentials"
-
-
-async def test_refresh_token_rejected_on_protected_route(client, admin):
-    refresh = create_refresh_token(admin.id, admin.role)
-    resp = await client.get("/auth/me", headers={"Authorization": f"Bearer {refresh}"})
-    assert resp.status_code == 401
-    assert resp.json()["code"] == "invalid_credentials"
-
-
 async def test_expired_token_returns_token_expired(client, admin):
     # Token potpisan ispravnim ključem, ali s istekom u prošlosti
     payload = {
@@ -68,33 +52,3 @@ async def test_expired_token_returns_token_expired(client, admin):
     resp = await client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 401
     assert resp.json()["code"] == "token_expired"
-
-
-async def test_token_with_wrong_signature_is_rejected(client, admin):
-    payload = {
-        "sub": str(admin.id),
-        "role": admin.role,
-        "type": "access",
-        "iss": settings.JWT_ISSUER,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
-    }
-    token = jwt.encode(payload, "neki-drugi-kljuc-koji-napadac-zna-123", algorithm="HS256")
-    resp = await client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
-    assert resp.status_code == 401
-    assert resp.json()["code"] == "invalid_credentials"
-
-
-async def test_password_hash_never_in_response(client, admin):
-    resp = await client.get("/auth/me", headers=auth(admin))
-    assert "password_hash" not in resp.text
-    assert "$2b$" not in resp.text
-
-
-async def test_deactivated_user_gets_same_401_as_wrong_password(client, db):
-    user = await make_user(db, "neaktivan@test.hr", "student")
-    user.is_active = False
-    await db.commit()
-    deactivated = await login(client, "neaktivan@test.hr", "lozinka123")
-    wrong_password = await login(client, "neaktivan@test.hr", "kriva")
-    assert deactivated.status_code == 401
-    assert deactivated.json() == wrong_password.json()

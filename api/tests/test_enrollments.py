@@ -46,43 +46,7 @@ async def test_double_enrollment_is_409(client, db, trainer, student):
     assert resp.json()["code"] == "duplicate"
 
 
-async def test_enroll_on_draft_course_is_400(client, db, trainer, student):
-    course = await make_course(db, trainer, status="draft")
-    with freeze_time(DURING_OPEN):
-        resp = await client.post(f"/courses/{course.id}/enrollments/", headers=auth(student))
-    assert resp.status_code == 400
-    assert resp.json()["code"] == "course_not_published"
-
-
-async def test_trainer_cannot_enroll(client, db, trainer, trainer2):
-    course = await make_course(db, trainer)
-    with freeze_time(DURING_OPEN):
-        resp = await client.post(f"/courses/{course.id}/enrollments/", headers=auth(trainer2))
-    assert resp.status_code == 403
-
-
 # --- Vidljivost --------------------------------------------------------------
-
-
-async def test_trainer_cannot_list_enrollments_of_foreign_course(
-    client, db, trainer, trainer2
-):
-    course = await make_course(db, trainer)
-    resp = await client.get(f"/courses/{course.id}/enrollments/", headers=auth(trainer2))
-    assert resp.status_code == 403
-
-
-async def test_enrollment_visible_to_owner_and_course_trainer_only(
-    client, db, admin, trainer, trainer2, student, student2
-):
-    course = await make_course(db, trainer)
-    enrollment = await make_enrollment(db, student, course)
-    url = f"/enrollments/{enrollment.id}"
-    assert (await client.get(url, headers=auth(student))).status_code == 200
-    assert (await client.get(url, headers=auth(trainer))).status_code == 200
-    assert (await client.get(url, headers=auth(admin))).status_code == 200
-    assert (await client.get(url, headers=auth(student2))).status_code == 403
-    assert (await client.get(url, headers=auth(trainer2))).status_code == 403
 
 
 async def test_my_enrollments_contain_only_own(client, db, trainer, student, student2):

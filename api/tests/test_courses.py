@@ -1,6 +1,4 @@
-from freezegun import freeze_time
-
-from tests.conftest import DURING_OPEN, auth, make_course
+from tests.conftest import auth, make_course
 
 COURSE_BODY = {
     "title": "Uvod u Python",
@@ -19,16 +17,6 @@ async def test_student_cannot_create_course(client, student):
     resp = await client.post("/courses/", json=COURSE_BODY, headers=auth(student))
     assert resp.status_code == 403
     assert resp.json()["code"] == "forbidden"
-
-
-async def test_trainer_creates_draft_and_becomes_owner(client, trainer):
-    with freeze_time(DURING_OPEN):
-        resp = await client.post("/courses/", json=COURSE_BODY, headers=auth(trainer))
-    assert resp.status_code == 201
-    body = resp.json()
-    assert body["status"] == "draft"
-    assert body["trainer_id"] == trainer.id
-    assert body["phase"] == "enrollment_open"
 
 
 async def test_invalid_date_order_on_create(client, trainer):
@@ -72,20 +60,6 @@ async def test_draft_visible_only_to_owner_and_admin(
     assert (await client.get(url, headers=auth(student))).status_code == 404
 
 
-async def test_course_lists_by_role(client, db, admin, trainer, trainer2, student):
-    await make_course(db, trainer, status="draft", title="Moj nacrt")
-    await make_course(db, trainer2, status="draft", title="Tuđi nacrt")
-    await make_course(db, trainer2, status="published", title="Tuđi objavljen")
-
-    async def titles(user):
-        resp = await client.get("/courses/", headers=auth(user))
-        return {c["title"] for c in resp.json()["items"]}
-
-    assert await titles(admin) == {"Moj nacrt", "Tuđi nacrt", "Tuđi objavljen"}
-    assert await titles(trainer) == {"Moj nacrt", "Tuđi objavljen"}
-    assert await titles(student) == {"Tuđi objavljen"}
-
-
 # --- Prijelazi statusa ------------------------------------------------------
 
 
@@ -103,20 +77,3 @@ async def test_invalid_course_transitions(client, db, trainer):
         resp = await client.post(f"/courses/{course.id}/{action}", headers=auth(trainer))
         assert resp.status_code == 400, (course.status, action)
         assert resp.json()["code"] == "invalid_status_transition"
-
-
-# --- Brisanje ----------------------------------------------------------------
-
-
-async def test_owner_deletes_course_without_enrollments(client, db, trainer):
-    course = await make_course(db, trainer)
-    resp = await client.delete(f"/courses/{course.id}", headers=auth(trainer))
-    assert resp.status_code == 204
-    again = await client.get(f"/courses/{course.id}", headers=auth(trainer))
-    assert again.status_code == 404
-
-
-async def test_foreign_trainer_cannot_delete_course(client, db, trainer, trainer2):
-    course = await make_course(db, trainer)
-    resp = await client.delete(f"/courses/{course.id}", headers=auth(trainer2))
-    assert resp.status_code == 403

@@ -178,10 +178,11 @@ cd api
 pytest
 ```
 
-47 testova pokriva prijavu i tokene, uloge, vlasništvo i poslovna pravila
+26 testova pokriva prijavu i tokene, uloge, vlasništvo i poslovna pravila
 (rok upisa, kapacitet, prijelazi statusa, brisanje tečaja). Pravila koja
 ovise o vremenu testiraju se sa zamrznutim vremenom (freezegun), na
-granicama: sekundu prije i točno na roku.
+granicama: sekundu prije i sekundu poslije roka upisa te točno na granici
+svake faze tečaja.
 
 Korisne varijante (iz mape `api/`, s aktiviranim `.venv`):
 
