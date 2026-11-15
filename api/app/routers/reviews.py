@@ -7,11 +7,11 @@ from app.schemas.common import Page
 from app.schemas.review import ReviewCreate, ReviewRead
 from app.services import review_service
 
-# Bez prefiksa: recenzije žive pod /courses/{id}/reviews/
-router = APIRouter(tags=["reviews"])
+# Recenzije pripadaju tečaju, pa su ugniježđene pod njega
+router = APIRouter(prefix="/courses/{course_id}/reviews", tags=["reviews"])
 
 
-@router.post("/courses/{course_id}/reviews/", response_model=ReviewRead, status_code=201)
+@router.post("/", response_model=ReviewRead, status_code=201)
 async def create_review(
     course_id: int,
     body: ReviewCreate,
@@ -21,7 +21,7 @@ async def create_review(
     return await review_service.create_review(db, course_id, body, user)
 
 
-@router.get("/courses/{course_id}/reviews/", response_model=Page[ReviewRead])
+@router.get("/", response_model=Page[ReviewRead])
 async def list_reviews(
     course_id: int,
     page: PageParams = Depends(get_page_params),

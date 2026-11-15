@@ -13,13 +13,14 @@ from app.schemas.common import Page
 from app.schemas.enrollment import EnrollmentRead
 from app.services import enrollment_service
 
-# Bez prefiksa: rute ovog routera žive pod /courses/..., /me/... i /enrollments/...
-router = APIRouter(tags=["enrollments"])
+# Upisi žive na tri mjesta, pa su to tri routera, svaki sa svojim prefiksom:
+# upisi jednog tečaja, upisi prijavljenog studenta i jedan upis
+course_router = APIRouter(prefix="/courses/{course_id}/enrollments", tags=["enrollments"])
+me_router = APIRouter(prefix="/me/enrollments", tags=["enrollments"])
+router = APIRouter(prefix="/enrollments", tags=["enrollments"])
 
 
-@router.post(
-    "/courses/{course_id}/enrollments/", response_model=EnrollmentRead, status_code=201
-)
+@course_router.post("/", response_model=EnrollmentRead, status_code=201)
 async def enroll(
     course_id: int,
     db: AsyncSession = Depends(get_db),
@@ -28,7 +29,7 @@ async def enroll(
     return await enrollment_service.enroll(db, course_id, user)
 
 
-@router.get("/courses/{course_id}/enrollments/", response_model=Page[EnrollmentRead])
+@course_router.get("/", response_model=Page[EnrollmentRead])
 async def list_course_enrollments(
     course_id: int,
     page: PageParams = Depends(get_page_params),
@@ -41,7 +42,7 @@ async def list_course_enrollments(
     return {"items": items, "total": total, "limit": page.limit, "offset": page.offset}
 
 
-@router.get("/me/enrollments/", response_model=Page[EnrollmentRead])
+@me_router.get("/", response_model=Page[EnrollmentRead])
 async def list_my_enrollments(
     page: PageParams = Depends(get_page_params),
     db: AsyncSession = Depends(get_db),
@@ -53,7 +54,7 @@ async def list_my_enrollments(
     return {"items": items, "total": total, "limit": page.limit, "offset": page.offset}
 
 
-@router.get("/enrollments/{enrollment_id}", response_model=EnrollmentRead)
+@router.get("/{enrollment_id}", response_model=EnrollmentRead)
 async def get_enrollment(
     enrollment_id: int,
     db: AsyncSession = Depends(get_db),
@@ -62,7 +63,7 @@ async def get_enrollment(
     return await enrollment_service.get_enrollment(db, enrollment_id, user)
 
 
-@router.post("/enrollments/{enrollment_id}/accept", response_model=EnrollmentRead)
+@router.post("/{enrollment_id}/accept", response_model=EnrollmentRead)
 async def accept(
     enrollment_id: int,
     db: AsyncSession = Depends(get_db),
@@ -71,7 +72,7 @@ async def accept(
     return await enrollment_service.accept(db, enrollment_id, user)
 
 
-@router.post("/enrollments/{enrollment_id}/reject", response_model=EnrollmentRead)
+@router.post("/{enrollment_id}/reject", response_model=EnrollmentRead)
 async def reject(
     enrollment_id: int,
     db: AsyncSession = Depends(get_db),

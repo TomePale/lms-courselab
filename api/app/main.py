@@ -15,6 +15,8 @@ from app.core.logging import setup_logging
 from app.routers.auth import router as auth_router
 from app.routers.categories import router as categories_router
 from app.routers.courses import router as courses_router
+from app.routers.enrollments import course_router as course_enrollments_router
+from app.routers.enrollments import me_router as my_enrollments_router
 from app.routers.enrollments import router as enrollments_router
 from app.routers.health import router as health_router
 from app.routers.reviews import router as reviews_router
@@ -36,6 +38,8 @@ def create_app(config: Settings = settings) -> FastAPI:
     app.include_router(auth_router)
     app.include_router(users_router)
     app.include_router(courses_router)
+    app.include_router(course_enrollments_router)
+    app.include_router(my_enrollments_router)
     app.include_router(enrollments_router)
     app.include_router(categories_router)
     app.include_router(reviews_router)
